@@ -6,6 +6,9 @@ Compatible up to:
 - WordPress 6.7.1
 - WooCommerce 9.6.0
 
+# Official API Docs
+[Herepay Documentation](https://herepay.readme.io)
+
 # Installation
 
 There 2 ways to Install this plugin:
