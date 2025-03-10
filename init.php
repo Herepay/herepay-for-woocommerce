@@ -15,6 +15,10 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         $this->enabled = $this->get_option('enabled');
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
+        $this->api_key = $this->get_option('api_key');
+        $this->secret_key = $this->get_option('secret_key');
+        $this->private_key = $this->get_option('private_key');
+        $this->environment = $this->get_option('environment');
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
     }
@@ -38,8 +42,44 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                 'type' => 'textarea',
                 'description' => __('Description shown to customers at checkout.', 'woocommerce'),
                 'default' => __('Pay securely using Herepay Payment Gateway.', 'woocommerce')
+            ],
+            'environment' => [
+                'title' => __('Environment', 'woocommerce'),
+                'type' => 'select',
+                'description' => __('Select the environment for your Herepay account.', 'woocommerce'),
+                'default' => 'sandbox',
+                'options' => [
+                    'sandbox' => __('Sandbox', 'woocommerce'),
+                    'production' => __('Production', 'woocommerce')
+                ]
+            ],
+            'api_key' => [
+                'title' => __('API Key', 'woocommerce'),
+                'type' => 'text',
+                'description' => __('Enter your Herepay API key.', 'woocommerce'),
+                'default' => ''
+            ],
+            'secret_key' => [
+                'title' => __('Secret Key', 'woocommerce'),
+                'type' => 'text',
+                'description' => __('Enter your Herepay Secret Key.', 'woocommerce'),
+                'default' => ''
+            ],
+            'private_key' => [
+                'title' => __('Private Key', 'woocommerce'),
+                'type' => 'text',
+                'description' => __('Enter your Herepay Private Key.', 'woocommerce'),
+                'default' => ''
             ]
         ];
+    }
+
+    public function getEnvironment() {
+        if ($this->environment === 'sandbox') {
+            return 'https://uat.herepay.org';
+        } else {
+            return 'https://app.herepay.org';
+        }
     }
 
     public function process_payment($order_id) {
