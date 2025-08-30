@@ -1,0 +1,278 @@
+/* Herepay Admin Styles */
+.herepay-admin-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    margin-top: 20px;
+}
+
+.herepay-status-card,
+.herepay-tools-card,
+.herepay-logs-card,
+.herepay-docs-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.herepay-logs-card,
+.herepay-docs-card {
+    grid-column: 1 / -1;
+}
+
+.herepay-status-card h2,
+.herepay-tools-card h2,
+.herepay-logs-card h2,
+.herepay-docs-card h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.status-value {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-value.test-mode {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-value.live-mode {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-value.enabled {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-value.disabled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-value.configured {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-value.not-configured {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.tool-item {
+    margin-bottom: 15px;
+}
+
+.tool-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.tool-item input[type="text"] {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 10px;
+}
+
+#connection-result,
+#transaction-result {
+    margin-top: 15px;
+}
+
+.transaction-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.transaction-details-table th,
+.transaction-details-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.transaction-details-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    width: 30%;
+}
+
+.status-badge.status-completed,
+.status-badge.status-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.status-failed,
+.status-badge.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-badge.status-refunded {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.order-status {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.order-status.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.order-status.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.order-status.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.order-status.status-failed,
+.order-status.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-status.status-refunded {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0,0,0,.1);
+    border-radius: 50%;
+    border-top-color: #007cba;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner.is-active {
+    display: inline-block;
+}
+
+.herepay-docs-card code {
+    background-color: #f1f1f1;
+    padding: 10px;
+    display: block;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.herepay-docs-card .button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.transaction-status-result {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.transaction-status-row td {
+    background-color: #f9f9f9 !important;
+}
+
+/* Responsive design */
+@media (max-width: 782px) {
+    .herepay-admin-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .status-value {
+        margin-top: 5px;
+    }
+}
+
+/* Frontend checkout logo styling */
+.woocommerce-checkout-payment .payment_methods .payment_method_herepay_payment_gateway img {
+    max-height: 24px !important;
+    width: auto !important;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+/* Alternative selector for different themes */
+.wc_payment_method.payment_method_herepay_payment_gateway img,
+.payment_method_herepay_payment_gateway .payment_box img,
+.payment_methods .payment_method_herepay_payment_gateway label img {
+    max-height: 24px !important;
+    width: auto !important;
+    vertical-align: middle;
+    margin-right: 8px;
+}
