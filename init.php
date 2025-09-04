@@ -301,19 +301,51 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
 
     /**
      * Validate payment form fields
+     * Handles both classic and block checkout validation
      */
     public function validate_fields() {
-        if (empty($_POST['herepay_bank_prefix'])) {
+        // Get bank prefix from either classic form or block checkout
+        $bank_prefix = $this->get_payment_post_data('herepay_bank_prefix');
+        $payment_method = $this->get_payment_post_data('herepay_payment_method');
+        
+        if (empty($bank_prefix)) {
             wc_add_notice(__('Please select a bank for payment.', 'woocommerce'), 'error');
             return false;
         }
         
-        if (empty($_POST['herepay_payment_method'])) {
+        if (empty($payment_method)) {
             wc_add_notice(__('Payment method not selected.', 'woocommerce'), 'error');
             return false;
         }
         
         return true;
+    }
+
+    /**
+     * Get payment POST data with fallback for block checkout
+     * Block checkout sends data differently than classic checkout
+     */
+    public function get_payment_post_data($key) {
+        // First try classic checkout $_POST
+        if (isset($_POST[$key]) && !empty($_POST[$key])) {
+            return sanitize_text_field($_POST[$key]);
+        }
+        
+        // Try block checkout format - data might be in payment_data array
+        if (isset($_POST['payment_data']) && is_array($_POST['payment_data'])) {
+            foreach ($_POST['payment_data'] as $data) {
+                if (isset($data['key']) && $data['key'] === $key && !empty($data['value'])) {
+                    return sanitize_text_field($data['value']);
+                }
+            }
+        }
+        
+        // Try direct key in case block sends it differently
+        if (isset($_POST['payment_method_data']) && isset($_POST['payment_method_data'][$key])) {
+            return sanitize_text_field($_POST['payment_method_data'][$key]);
+        }
+        
+        return '';
     }
 
     public function process_payment($order_id) {
@@ -324,9 +356,9 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             return ['result' => 'fail'];
         }
 
-        // Get form data
-        $bank_prefix = sanitize_text_field($_POST['herepay_bank_prefix']);
-        $payment_method = sanitize_text_field($_POST['herepay_payment_method']);
+        // Get form data (works for both classic and block checkout)
+        $bank_prefix = $this->get_payment_post_data('herepay_bank_prefix');
+        $payment_method = $this->get_payment_post_data('herepay_payment_method');
 
         if (empty($bank_prefix) || empty($payment_method)) {
             wc_add_notice(__('Please select a bank for payment.', 'woocommerce'), 'error');

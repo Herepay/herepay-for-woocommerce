@@ -43,6 +43,7 @@ function herepay_payment_gateway_init() {
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-payment-form.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-admin.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-test-config.php';
+    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-blocks-integration.php';
     
     Herepay_Payment_Form::init();
     Herepay_Admin::init();
@@ -109,17 +110,18 @@ function herepay_handle_payment_processing() {
     curl_close($ch);
     exit;
 }/**
- * Declare HPOS compatibility
+ * Declare HPOS and Blocks compatibility
  */
-function herepay_declare_hpos_compatibility() {
+function herepay_declare_compatibility() {
     if (class_exists('Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        // Declare HPOS compatibility
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
         
-        // Declare checkout block compatibility
+        // Declare checkout blocks compatibility - REQUIRED for block checkout
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
     }
 }
-add_action('before_woocommerce_init', 'herepay_declare_hpos_compatibility');
+add_action('before_woocommerce_init', 'herepay_declare_compatibility');
 
 /**
  * Add Herepay Gateway to WooCommerce
@@ -129,6 +131,23 @@ function add_herepay_payment_gateway($methods) {
     return $methods;
 }
 add_filter('woocommerce_payment_gateways', 'add_herepay_payment_gateway');
+
+/**
+ * Register Herepay payment method for WooCommerce Blocks
+ */
+function herepay_register_payment_method_block() {
+    if (!class_exists('Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry')) {
+        return;
+    }
+    
+    add_action(
+        'woocommerce_blocks_payment_method_type_registration',
+        function(Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
+            $payment_method_registry->register(new Herepay_Blocks_Integration);
+        }
+    );
+}
+add_action('woocommerce_blocks_loaded', 'herepay_register_payment_method_block');
 
 /**
  * Add custom links to plugin page

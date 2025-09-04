@@ -1,0 +1,80 @@
+/**
+ * Herepay Payment Gateway Blocks Styling
+ */
+
+.herepay-payment-form {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    margin-top: 10px;
+}
+
+.herepay-payment-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.herepay-payment-form select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.herepay-payment-form .required {
+    color: red;
+}
+
+.herepay-selected-method {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    padding: 5px;
+    background-color: #e8f5e8;
+    border-radius: 3px;
+}
+
+.herepay-error {
+    padding: 15px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    color: #721c24;
+}
+
+.herepay-warning {
+    padding: 15px;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    color: #856404;
+}
+
+.herepay-loading {
+    padding: 15px;
+    text-align: center;
+    color: #666;
+}
+
+/* Block-specific styles */
+.wc-block-checkout__payment-method .herepay-payment-form {
+    margin-top: 0;
+}
+
+.wp-block-woocommerce-checkout-payment-block .herepay-payment-form {
+    border: none;
+    background: transparent;
+    padding: 10px 0;
+}
+
+/* Payment method label styling */
+.wc-block-components-payment-method-label img {
+    height: 24px;
+    width: auto;
+    margin-right: 8px;
+    vertical-align: middle;
+}
