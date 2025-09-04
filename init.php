@@ -1,6 +1,13 @@
 <?php
 
 class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
+    public $api_key;
+    public $secret_key;
+    public $private_key;
+    public $environment;
+    public $redirect_url;
+    public $callback_url;
+
     public function __construct() {
         $this->id = 'herepay_payment_gateway';
         $this->icon = 'https://app.herepay.org/images/logo.png';
