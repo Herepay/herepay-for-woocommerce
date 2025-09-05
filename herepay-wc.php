@@ -30,7 +30,7 @@ if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get
 
 function herepay_woocommerce_missing_notice() {
     echo '<div class="notice notice-error"><p>';
-    echo __('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-wc');
+    echo esc_html__('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-wc');
     echo '</p></div>';
 }
 

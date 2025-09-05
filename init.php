@@ -126,8 +126,8 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
      * Admin Panel Options
      */
     public function admin_options() {
-        echo '<h3>' . __('Herepay Payment Gateway', 'herepay-wc') . '</h3>';
-        echo '<p>' . __('Configure your Herepay payment gateway settings below.', 'herepay-wc') . '</p>';
+        echo '<h3>' . esc_html__('Herepay Payment Gateway', 'herepay-wc') . '</h3>';
+        echo '<p>' . esc_html__('Configure your Herepay payment gateway settings below.', 'herepay-wc') . '</p>';
         echo '<table class="form-table">';
         $this->generate_settings_html();
         echo '</table>';
@@ -232,8 +232,8 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         
         if (empty($api_key) || empty($secret_key)) {
             echo '<div style="padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; margin: 10px 0;">';
-            echo '<p style="margin: 0; color: #856404;"><strong>' . __('Payment gateway is not fully configured.', 'herepay-wc') . '</strong></p>';
-            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #856404;">' . __('Please contact the store administrator to configure Herepay payment settings.', 'herepay-wc') . '</p>';
+            echo '<p style="margin: 0; color: #856404;"><strong>' . esc_html__('Payment gateway is not fully configured.', 'herepay-wc') . '</strong></p>';
+            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #856404;">' . esc_html__('Please contact the store administrator to configure Herepay payment settings.', 'herepay-wc') . '</p>';
             echo '</div>';
             return;
         }
@@ -243,16 +243,16 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         
         if (!$channels || !isset($channels['data']) || empty($channels['data'])) {
             echo '<div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin: 10px 0;">';
-            echo '<p style="margin: 0; color: #721c24;"><strong>' . __('Unable to load payment channels.', 'herepay-wc') . '</strong></p>';
-            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #721c24;">' . __('Please try again later or contact support if the problem persists.', 'herepay-wc') . '</p>';
+            echo '<p style="margin: 0; color: #721c24;"><strong>' . esc_html__('Unable to load payment channels.', 'herepay-wc') . '</strong></p>';
+            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #721c24;">' . esc_html__('Please try again later or contact support if the problem persists.', 'herepay-wc') . '</p>';
             echo '</div>';
             return;
         }
 
         echo '<div id="herepay-payment-form" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background-color: #f9f9f9; margin-top: 10px;">';
-        echo '<label for="herepay_bank_prefix" style="display: block; margin-bottom: 5px; font-weight: bold;">' . __('Select Bank', 'herepay-wc') . ' <span class="required" style="color: red;">*</span></label>';
+        echo '<label for="herepay_bank_prefix" style="display: block; margin-bottom: 5px; font-weight: bold;">' . esc_html__('Select Bank', 'herepay-wc') . ' <span class="required" style="color: red;">*</span></label>';
         echo '<select id="herepay_bank_prefix" name="herepay_bank_prefix" required style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">';
-        echo '<option value="">' . __('Select a bank...', 'herepay-wc') . '</option>';
+        echo '<option value="">' . esc_html__('Select a bank...', 'herepay-wc') . '</option>';
         
         // Parse the channels data structure properly
         foreach ($channels['data'] as $method_group) {

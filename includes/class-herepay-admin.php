@@ -50,19 +50,19 @@ class Herepay_Admin {
                     <div class="status-item">
                         <span class="status-label"><?php esc_html_e('Environment:', 'herepay-wc'); ?></span>
                         <span class="status-value <?php echo $test_mode ? 'test-mode' : 'live-mode'; ?>">
-                            <?php echo $test_mode ? __('Sandbox', 'herepay-wc') : __('Production', 'herepay-wc'); ?>
+                            <?php echo $test_mode ? esc_html__('Sandbox', 'herepay-wc') : esc_html__('Production', 'herepay-wc'); ?>
                         </span>
                     </div>
                     <div class="status-item">
                         <span class="status-label"><?php esc_html_e('Gateway Enabled:', 'herepay-wc'); ?></span>
                         <span class="status-value <?php echo $gateway->enabled === 'yes' ? 'enabled' : 'disabled'; ?>">
-                            <?php echo $gateway->enabled === 'yes' ? __('Yes', 'herepay-wc') : __('No', 'herepay-wc'); ?>
+                            <?php echo $gateway->enabled === 'yes' ? esc_html__('Yes', 'herepay-wc') : esc_html__('No', 'herepay-wc'); ?>
                         </span>
                     </div>
                     <div class="status-item">
                         <span class="status-label"><?php esc_html_e('API Key:', 'herepay-wc'); ?></span>
                         <span class="status-value <?php echo !empty($gateway->api_key) ? 'configured' : 'not-configured'; ?>">
-                            <?php echo !empty($gateway->api_key) ? __('Configured', 'herepay-wc') : __('Not Configured', 'herepay-wc'); ?>
+                            <?php echo !empty($gateway->api_key) ? esc_html__('Configured', 'herepay-wc') : esc_html__('Not Configured', 'herepay-wc'); ?>
                         </span>
                     </div>
                     

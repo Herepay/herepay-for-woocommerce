@@ -74,7 +74,7 @@ class Herepay_Payment_Form {
         <head>
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title><?php _e('Processing Payment...', 'herepay-wc'); ?></title>
+            <title><?php esc_html_e('Processing Payment...', 'herepay-wc'); ?></title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -155,26 +155,26 @@ class Herepay_Payment_Form {
         <body>
             <div class="payment-container">
                 <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/images/herepay-logo.png'); ?>" alt="Herepay" class="herepay-logo">
-                <h2><?php _e('Processing Your Payment', 'herepay-wc'); ?></h2>
+                <h2><?php esc_html_e('Processing Your Payment', 'herepay-wc'); ?></h2>
                 <div class="spinner"></div>
-                <p><?php _e('Please wait while we redirect you to the payment gateway...', 'herepay-wc'); ?></p>
+                <p><?php esc_html_e('Please wait while we redirect you to the payment gateway...', 'herepay-wc'); ?></p>
                 
                 <div class="payment-info">
-                    <h3><?php _e('Payment Details', 'herepay-wc'); ?></h3>
+                    <h3><?php esc_html_e('Payment Details', 'herepay-wc'); ?></h3>
                     <div class="payment-detail">
-                        <span><?php _e('Order ID:', 'herepay-wc'); ?></span>
+                        <span><?php esc_html_e('Order ID:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($order->get_id()); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Payment Method:', 'herepay-wc'); ?></span>
+                        <span><?php esc_html_e('Payment Method:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($payment_method); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Bank:', 'herepay-wc'); ?></span>
+                        <span><?php esc_html_e('Bank:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($bank_prefix); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Amount:', 'herepay-wc'); ?></span>
+                        <span><?php esc_html_e('Amount:', 'herepay-wc'); ?></span>
                         <span><?php echo wc_price($order->get_total()); ?></span>
                     </div>
                 </div>
@@ -221,10 +221,10 @@ class Herepay_Payment_Form {
                 </script>
                 
                 <p style="margin-top: 30px; font-size: 14px; color: #666;">
-                    <?php _e('If you are not redirected automatically, please click the button below.', 'herepay-wc'); ?>
+                    <?php esc_html_e('If you are not redirected automatically, please click the button below.', 'herepay-wc'); ?>
                 </p>
                 <button type="button" onclick="document.getElementById('herepay-payment-form').submit();" class="continue-btn">
-                    <?php _e('Continue to Payment', 'herepay-wc'); ?>
+                    <?php esc_html_e('Continue to Payment', 'herepay-wc'); ?>
                 </button>
             </div>
         </body>
