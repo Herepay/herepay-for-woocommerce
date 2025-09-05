@@ -231,18 +231,11 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         $secret_key = $this->secret_key;
         
         if (empty($api_key) || empty($secret_key)) {
-            // Use sandbox credentials for testing
-            if (class_exists('Herepay_Test_Config')) {
-                $sandbox_creds = Herepay_Test_Config::get_sandbox_credentials();
-                $api_key = $sandbox_creds['api_key'];
-                $secret_key = $sandbox_creds['secret_key'];
-            } else {
-                echo '<div style="padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; margin: 10px 0;">';
-                echo '<p style="margin: 0; color: #856404;"><strong>' . __('Payment gateway is not fully configured.', 'herepay-wc') . '</strong></p>';
-                echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #856404;">' . __('Please contact the store administrator to configure Herepay payment settings.', 'herepay-wc') . '</p>';
-                echo '</div>';
-                return;
-            }
+            echo '<div style="padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; margin: 10px 0;">';
+            echo '<p style="margin: 0; color: #856404;"><strong>' . __('Payment gateway is not fully configured.', 'herepay-wc') . '</strong></p>';
+            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #856404;">' . __('Please contact the store administrator to configure Herepay payment settings.', 'herepay-wc') . '</p>';
+            echo '</div>';
+            return;
         }
 
         // Get payment channels using the correct credentials

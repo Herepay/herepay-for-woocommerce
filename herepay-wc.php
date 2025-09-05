@@ -42,7 +42,6 @@ function herepay_payment_gateway_init() {
     include_once HEREPAY_WC_PLUGIN_PATH . 'init.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-payment-form.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-admin.php';
-    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-test-config.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-blocks-integration.php';
     
     Herepay_Payment_Form::init();
