@@ -497,7 +497,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             if ($amount > 0 && abs($order->get_total() - $amount) > 0.01) {
                 $order->add_order_note(sprintf(
                     // translators: %1$s is the expected amount, %2$s is the received amount
-                    __('Herepay payment amount mismatch. Expected: %s, Received: %s', 'herepay-wc'),
+                    __('Herepay payment amount mismatch. Expected: %1$s, Received: %2$s', 'herepay-wc'),
                     $order->get_total(),
                     $amount
                 ));
