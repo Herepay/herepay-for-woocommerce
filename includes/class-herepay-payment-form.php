@@ -175,7 +175,7 @@ class Herepay_Payment_Form {
                     </div>
                     <div class="payment-detail">
                         <span><?php esc_html_e('Amount:', 'herepay-wc'); ?></span>
-                        <span><?php echo wc_price($order->get_total()); ?></span>
+                        <span><?php echo wp_kses_post(wc_price($order->get_total())); ?></span>
                     </div>
                 </div>
                 
@@ -184,7 +184,7 @@ class Herepay_Payment_Form {
                     <input type="hidden" name="action" value="herepay_process">
                     <?php 
                     // Debug: Log the data being sent
-                    error_log('Payment form data being sent: ' . print_r($data, true));
+                    error_log('Payment form data being sent: ' . json_encode($data));
                     foreach ($data as $key => $value): ?>
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
                     <?php endforeach; ?>

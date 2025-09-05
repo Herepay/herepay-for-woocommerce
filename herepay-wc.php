@@ -53,20 +53,20 @@ function herepay_payment_gateway_init() {
 add_action('plugins_loaded', 'herepay_payment_gateway_init');
 
 function herepay_handle_payment_processing() {
-    error_log('Herepay handler function called - POST: ' . print_r($_POST, true));
+    error_log('Herepay handler function called - POST: ' . json_encode($_POST));
     error_log('Herepay handler function called - REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
 
     $form_data = $_POST;
     
     if (empty($form_data)) {
-        wp_die('No form data received. Debug - POST: ' . print_r($_POST, true));
+        wp_die('No form data received. Debug - POST: ' . esc_html(json_encode($_POST)));
     }
 
     $order_id = isset($form_data['order_id']) ? intval($form_data['order_id']) : 0;
     unset($form_data['order_id']);
     unset($form_data['action']);
     
-    error_log('Form data after removing WordPress fields: ' . print_r($form_data, true));
+    error_log('Form data after removing WordPress fields: ' . json_encode($form_data));
     
     $order = $order_id ? wc_get_order($order_id) : null;
     
@@ -210,8 +210,8 @@ function herepay_handle_redirect() {
     
     // Log that the redirect handler was called
     error_log('Herepay redirect handler called at: ' . current_time('Y-m-d H:i:s'));
-    error_log('Herepay redirect GET data: ' . print_r($_GET, true));
-    error_log('Herepay redirect POST data: ' . print_r($_POST, true));
+    error_log('Herepay redirect GET data: ' . json_encode($_GET));
+    error_log('Herepay redirect POST data: ' . json_encode($_POST));
     
     // Get the gateway instance
     $gateways = WC()->payment_gateways->get_available_payment_gateways();

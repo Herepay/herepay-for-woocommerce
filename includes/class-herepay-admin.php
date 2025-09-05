@@ -275,7 +275,7 @@ class Herepay_Admin {
         $result = $gateway->checkTransactionStatus($payment_code);
         
         // Log the raw result for debugging
-        error_log('Herepay transaction status result: ' . print_r($result, true));
+        error_log('Herepay transaction status result: ' . json_encode($result));
         
         if ($result) {
             // Check if the result indicates an error from the API
