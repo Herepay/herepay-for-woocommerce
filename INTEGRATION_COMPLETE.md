@@ -90,8 +90,7 @@ herepay-wc/
 ├── init.php                          # Payment gateway class
 ├── includes/
 │   ├── class-herepay-admin.php       # Admin dashboard
-│   ├── class-herepay-payment-form.php # Auto-submit form handler
-│   └── class-herepay-test-config.php # Test configuration
+│   └── class-herepay-payment-form.php # Auto-submit form handler
 └── assets/
     ├── checkout.js                   # Frontend JavaScript
     └── checkout.css                  # Styling

@@ -123,18 +123,12 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
      * @return array
      */
     private function get_payment_channels() {
-        // Use test config if no credentials are set
+        // Get credentials from gateway settings
         $api_key = $this->get_herepay_setting('api_key');
         $secret_key = $this->get_herepay_setting('secret_key');
         
         if (empty($api_key) || empty($secret_key)) {
-            if (class_exists('Herepay_Test_Config')) {
-                $sandbox_creds = Herepay_Test_Config::get_sandbox_credentials();
-                $api_key = $sandbox_creds['api_key'];
-                $secret_key = $sandbox_creds['secret_key'];
-            } else {
-                return [];
-            }
+            return [];
         }
 
         $channels = $this->gateway->getPaymentChannelsWithCredentials($api_key, $secret_key);

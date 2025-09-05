@@ -1,8 +1,8 @@
 === Herepay Payment Gateway ===
 Contributors: herepay, adisazizan, aleprosli
-Tags: payment, gateway, woocommerce, herepay, malaysia, online banking, ecommerce
+Tags: payment, gateway, woocommerce, herepay, malaysia
 Requires at least: 5.0
-Tested up to: 6.7.1
+Tested up to: 6.8
 Requires PHP: 8.1
 Stable tag: 1.0.0
 License: GPLv2 or later
@@ -192,7 +192,6 @@ Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
 * WordPress 5.0 or higher
 * WooCommerce 5.0 or higher
 * PHP 8.1 or higher
-* cURL extension enabled
 * SSL certificate (required for production)
 * Valid Herepay merchant account
 

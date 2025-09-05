@@ -12,6 +12,7 @@ class Herepay_Payment_Form {
     }
     
     public static function handle_payment_form_request() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public payment form display, no state changes
         if (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form') {
             self::display_payment_form();
             exit;
@@ -19,17 +20,20 @@ class Herepay_Payment_Form {
     }
     
     public static function enqueue_scripts() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking for payment form display, no state changes
         if (is_checkout() || (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form')) {
             wp_enqueue_script('jquery');
         }
     }
     
     public static function display_payment_form() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment form display, order_id from payment flow
         if (!isset($_GET['order_id'])) {
             wp_die('Invalid payment request');
         }
         
-        $payment_code = sanitize_text_field($_GET['order_id']);
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment form display, order_id from payment flow
+        $payment_code = sanitize_text_field(wp_unslash($_GET['order_id']));
         
         // Find order by payment code
         $orders = wc_get_orders([
@@ -74,7 +78,7 @@ class Herepay_Payment_Form {
         <head>
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title><?php _e('Processing Payment...', 'woocommerce'); ?></title>
+            <title><?php esc_html_e('Processing Payment...', 'herepay-wc'); ?></title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -154,37 +158,36 @@ class Herepay_Payment_Form {
         </head>
         <body>
             <div class="payment-container">
-                <img src="https://app.herepay.org/images/logo.png" alt="Herepay" class="herepay-logo">
-                <h2><?php _e('Processing Your Payment', 'woocommerce'); ?></h2>
+                <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/images/herepay-logo.png'); ?>" alt="Herepay" class="herepay-logo">
+                <h2><?php esc_html_e('Processing Your Payment', 'herepay-wc'); ?></h2>
                 <div class="spinner"></div>
-                <p><?php _e('Please wait while we redirect you to the payment gateway...', 'woocommerce'); ?></p>
+                <p><?php esc_html_e('Please wait while we redirect you to the payment gateway...', 'herepay-wc'); ?></p>
                 
                 <div class="payment-info">
-                    <h3><?php _e('Payment Details', 'woocommerce'); ?></h3>
+                    <h3><?php esc_html_e('Payment Details', 'herepay-wc'); ?></h3>
                     <div class="payment-detail">
-                        <span><?php _e('Order ID:', 'woocommerce'); ?></span>
+                        <span><?php esc_html_e('Order ID:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($order->get_id()); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Payment Method:', 'woocommerce'); ?></span>
+                        <span><?php esc_html_e('Payment Method:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($payment_method); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Bank:', 'woocommerce'); ?></span>
+                        <span><?php esc_html_e('Bank:', 'herepay-wc'); ?></span>
                         <span><?php echo esc_html($bank_prefix); ?></span>
                     </div>
                     <div class="payment-detail">
-                        <span><?php _e('Amount:', 'woocommerce'); ?></span>
-                        <span><?php echo wc_price($order->get_total()); ?></span>
+                        <span><?php esc_html_e('Amount:', 'herepay-wc'); ?></span>
+                        <span><?php echo wp_kses_post(wc_price($order->get_total())); ?></span>
                     </div>
                 </div>
                 
                                 <!-- Form POSTs to WordPress admin-post.php handler -->
                 <form id="herepay-payment-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="POST">
                     <input type="hidden" name="action" value="herepay_process">
+                    <?php wp_nonce_field('herepay_process_payment', 'herepay_nonce'); ?>
                     <?php 
-                    // Debug: Log the data being sent
-                    error_log('Payment form data being sent: ' . print_r($data, true));
                     foreach ($data as $key => $value): ?>
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
                     <?php endforeach; ?>
@@ -221,10 +224,10 @@ class Herepay_Payment_Form {
                 </script>
                 
                 <p style="margin-top: 30px; font-size: 14px; color: #666;">
-                    <?php _e('If you are not redirected automatically, please click the button below.', 'woocommerce'); ?>
+                    <?php esc_html_e('If you are not redirected automatically, please click the button below.', 'herepay-wc'); ?>
                 </p>
                 <button type="button" onclick="document.getElementById('herepay-payment-form').submit();" class="continue-btn">
-                    <?php _e('Continue to Payment', 'woocommerce'); ?>
+                    <?php esc_html_e('Continue to Payment', 'herepay-wc'); ?>
                 </button>
             </div>
         </body>

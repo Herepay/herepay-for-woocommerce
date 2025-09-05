@@ -5,10 +5,10 @@
  * Version: 1.0.0
  * Author: Herepay
  * Author URI: https://herepay.org
- * Text Domain: woocommerce
+ * Text Domain: herepay-wc
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 6.7.1
+ * Tested up to: 6.8
  * WC requires at least: 5.0
  * WC tested up to: 9.6.0
  * License: GPL v2 or later
@@ -30,7 +30,7 @@ if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get
 
 function herepay_woocommerce_missing_notice() {
     echo '<div class="notice notice-error"><p>';
-    echo __('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'woocommerce');
+    echo esc_html__('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-wc');
     echo '</p></div>';
 }
 
@@ -42,7 +42,6 @@ function herepay_payment_gateway_init() {
     include_once HEREPAY_WC_PLUGIN_PATH . 'init.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-payment-form.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-admin.php';
-    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-test-config.php';
     include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-blocks-integration.php';
     
     Herepay_Payment_Form::init();
@@ -53,21 +52,125 @@ function herepay_payment_gateway_init() {
 }
 add_action('plugins_loaded', 'herepay_payment_gateway_init');
 
-function herepay_handle_payment_processing() {
-    error_log('Herepay handler function called - POST: ' . print_r($_POST, true));
-    error_log('Herepay handler function called - REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
+/**
+ * Define allowed HTML tags for Herepay payment response
+ * Includes script tags to allow redirect functionality
+ */
+function herepay_get_allowed_html() {
+    return array(
+        'script' => array(
+            'type' => array(),
+            'src' => array(),
+            'charset' => array(),
+            'async' => array(),
+            'defer' => array()
+        ),
+        'form' => array(
+            'action' => array(),
+            'method' => array(),
+            'name' => array(),
+            'id' => array(),
+            'class' => array(),
+            'target' => array(),
+            'enctype' => array()
+        ),
+        'input' => array(
+            'type' => array(),
+            'name' => array(),
+            'value' => array(),
+            'id' => array(),
+            'class' => array(),
+            'hidden' => array(),
+            'readonly' => array(),
+            'disabled' => array()
+        ),
+        'button' => array(
+            'type' => array(),
+            'name' => array(),
+            'value' => array(),
+            'id' => array(),
+            'class' => array(),
+            'onclick' => array()
+        ),
+        'div' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'span' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'p' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'a' => array(
+            'href' => array(),
+            'target' => array(),
+            'id' => array(),
+            'class' => array(),
+            'onclick' => array()
+        ),
+        'img' => array(
+            'src' => array(),
+            'alt' => array(),
+            'width' => array(),
+            'height' => array(),
+            'id' => array(),
+            'class' => array()
+        ),
+        'br' => array(),
+        'hr' => array(),
+        'strong' => array(),
+        'em' => array(),
+        'b' => array(),
+        'i' => array(),
+        'u' => array(),
+        'h1' => array('id' => array(), 'class' => array()),
+        'h2' => array('id' => array(), 'class' => array()),
+        'h3' => array('id' => array(), 'class' => array()),
+        'h4' => array('id' => array(), 'class' => array()),
+        'h5' => array('id' => array(), 'class' => array()),
+        'h6' => array('id' => array(), 'class' => array()),
+        'ul' => array('id' => array(), 'class' => array()),
+        'ol' => array('id' => array(), 'class' => array()),
+        'li' => array('id' => array(), 'class' => array()),
+        'table' => array('id' => array(), 'class' => array()),
+        'tr' => array('id' => array(), 'class' => array()),
+        'td' => array('id' => array(), 'class' => array()),
+        'th' => array('id' => array(), 'class' => array()),
+        'meta' => array(
+            'name' => array(),
+            'content' => array(),
+            'http-equiv' => array()
+        ),
+        'noscript' => array(),
+        'style' => array(
+            'type' => array()
+        )
+    );
+}
 
+function herepay_handle_payment_processing() {
+    // Verify nonce for security
+    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce field check only, sanitized in wp_verify_nonce
+    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(wp_unslash($_POST['herepay_nonce']), 'herepay_process_payment')) {
+        wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-wc'));
+    }
+    
     $form_data = $_POST;
     
     if (empty($form_data)) {
-        wp_die('No form data received. Debug - POST: ' . print_r($_POST, true));
+        wp_die('No form data received. Debug - POST: ' . esc_html(json_encode($_POST)));
     }
 
     $order_id = isset($form_data['order_id']) ? intval($form_data['order_id']) : 0;
     unset($form_data['order_id']);
     unset($form_data['action']);
-    
-    error_log('Form data after removing WordPress fields: ' . print_r($form_data, true));
+    unset($form_data['herepay_nonce']); // Remove nonce from payment data
     
     $order = $order_id ? wc_get_order($order_id) : null;
     
@@ -88,26 +191,25 @@ function herepay_handle_payment_processing() {
     $form_data['checksum'] = $checksum;
 
     $headers = [
-        "SecretKey: " . $secret_key,
-        "XApiKey: " . $api_key,
-        "Content-Type: application/x-www-form-urlencoded"
+        'SecretKey' => $secret_key,
+        'XApiKey' => $api_key,
+        'Content-Type' => 'application/x-www-form-urlencoded'
     ];
 
-    $ch = curl_init('https://uat.herepay.org/api/v1/herepay/initiate');
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($form_data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $response = wp_remote_post('https://uat.herepay.org/api/v1/herepay/initiate', [
+        'method' => 'POST',
+        'headers' => $headers,
+        'body' => http_build_query($form_data),
+        'timeout' => 30,
+        'sslverify' => true
+    ]);
 
-    $response = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        wp_die('Error initiating payment: ' . curl_error($ch));
+    if (is_wp_error($response)) {
+        wp_die('Error initiating payment: ' . esc_html($response->get_error_message()));
     } else {
-        echo $response;
+        $body = wp_remote_retrieve_body($response);
+        echo wp_kses($body, herepay_get_allowed_html());
     }
-
-    curl_close($ch);
     exit;
 }/**
  * Declare HPOS and Blocks compatibility
@@ -153,8 +255,8 @@ add_action('woocommerce_blocks_loaded', 'herepay_register_payment_method_block')
  * Add custom links to plugin page
  */
 function herepay_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'woocommerce') . '</a>';
-    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'woocommerce') . '</a>';
+    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-wc') . '</a>';
+    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-wc') . '</a>';
     
     array_unshift($links, $settings_link, $docs_link);
     return $links;
@@ -166,8 +268,8 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'herepay_plugin_a
  */
 function herepay_plugin_row_meta($links, $file) {
     if (plugin_basename(__FILE__) === $file) {
-        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'woocommerce') . '</a>';
-        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'woocommerce') . '</a>';
+        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'herepay-wc') . '</a>';
+        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'herepay-wc') . '</a>';
     }
     return $links;
 }
@@ -210,15 +312,9 @@ function herepay_handle_redirect() {
         return;
     }
     
-    // Log that the redirect handler was called
-    error_log('Herepay redirect handler called at: ' . current_time('Y-m-d H:i:s'));
-    error_log('Herepay redirect GET data: ' . print_r($_GET, true));
-    error_log('Herepay redirect POST data: ' . print_r($_POST, true));
-    
     // Get the gateway instance
     $gateways = WC()->payment_gateways->get_available_payment_gateways();
     if (!isset($gateways['herepay_payment_gateway'])) {
-        error_log('Herepay redirect error: Gateway not available');
         wp_die('Herepay gateway not available');
     }
     
@@ -245,14 +341,6 @@ function herepay_deactivate() {
 register_deactivation_hook(__FILE__, 'herepay_deactivate');
 
 /**
- * Load plugin textdomain for translations
- */
-function herepay_load_textdomain() {
-    load_plugin_textdomain('woocommerce', false, dirname(plugin_basename(__FILE__)) . '/languages/');
-}
-add_action('plugins_loaded', 'herepay_load_textdomain');
-
-/**
  * Enqueue frontend scripts
  */
 function herepay_enqueue_scripts() {
@@ -275,7 +363,7 @@ function herepay_enqueue_scripts() {
         
         wp_localize_script('herepay-checkout', 'herepay_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
-            'loading_text' => __('Processing payment...', 'woocommerce')
+            'loading_text' => __('Processing payment...', 'herepay-wc')
         ]);
     }
 }
