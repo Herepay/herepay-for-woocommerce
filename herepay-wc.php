@@ -155,9 +155,6 @@ function herepay_get_allowed_html() {
 }
 
 function herepay_handle_payment_processing() {
-    error_log('Herepay handler function called - POST: ' . json_encode($_POST));
-    error_log('Herepay handler function called - REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
-
     $form_data = $_POST;
     
     if (empty($form_data)) {
@@ -167,8 +164,6 @@ function herepay_handle_payment_processing() {
     $order_id = isset($form_data['order_id']) ? intval($form_data['order_id']) : 0;
     unset($form_data['order_id']);
     unset($form_data['action']);
-    
-    error_log('Form data after removing WordPress fields: ' . json_encode($form_data));
     
     $order = $order_id ? wc_get_order($order_id) : null;
     
@@ -310,15 +305,9 @@ function herepay_handle_redirect() {
         return;
     }
     
-    // Log that the redirect handler was called
-    error_log('Herepay redirect handler called at: ' . current_time('Y-m-d H:i:s'));
-    error_log('Herepay redirect GET data: ' . json_encode($_GET));
-    error_log('Herepay redirect POST data: ' . json_encode($_POST));
-    
     // Get the gateway instance
     $gateways = WC()->payment_gateways->get_available_payment_gateways();
     if (!isset($gateways['herepay_payment_gateway'])) {
-        error_log('Herepay redirect error: Gateway not available');
         wp_die('Herepay gateway not available');
     }
     

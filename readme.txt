@@ -1,6 +1,6 @@
 === Herepay Payment Gateway ===
 Contributors: herepay, adisazizan, aleprosli
-Tags: payment, gateway, woocommerce, herepay, malaysia, online banking, ecommerce
+Tags: payment, gateway, woocommerce, herepay, malaysia
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 8.1

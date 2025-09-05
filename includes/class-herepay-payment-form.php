@@ -183,8 +183,6 @@ class Herepay_Payment_Form {
                 <form id="herepay-payment-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="POST">
                     <input type="hidden" name="action" value="herepay_process">
                     <?php 
-                    // Debug: Log the data being sent
-                    error_log('Payment form data being sent: ' . json_encode($data));
                     foreach ($data as $key => $value): ?>
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
                     <?php endforeach; ?>

@@ -157,13 +157,9 @@ class Herepay_Admin {
     }
     
     public static function test_api_connection() {
-        // Add error logging
-        error_log('Herepay: test_api_connection called');
-        
         try {
             check_ajax_referer('herepay_admin_nonce', 'nonce');
         } catch (Exception $e) {
-            error_log('Herepay: Nonce verification failed: ' . $e->getMessage());
             wp_send_json_error([
                 'message' => __('Security verification failed.', 'herepay-wc'),
                 'debug' => 'Nonce verification failed'
@@ -172,7 +168,6 @@ class Herepay_Admin {
         }
         
         if (!current_user_can('manage_woocommerce')) {
-            error_log('Herepay: User does not have manage_woocommerce capability');
             wp_send_json_error([
                 'message' => __('Insufficient permissions.', 'herepay-wc'),
                 'debug' => 'User does not have manage_woocommerce capability'
@@ -197,7 +192,6 @@ class Herepay_Admin {
                 ]);
             }
         } catch (Exception $e) {
-            error_log('Herepay: Gateway test exception: ' . $e->getMessage());
             wp_send_json_error([
                 'message' => __('API connection test failed.', 'herepay-wc'),
                 'debug' => 'Exception: ' . $e->getMessage()
@@ -273,9 +267,6 @@ class Herepay_Admin {
         
         $gateway = new WC_Herepay_Payment_Gateway();
         $result = $gateway->checkTransactionStatus($payment_code);
-        
-        // Log the raw result for debugging
-        error_log('Herepay transaction status result: ' . json_encode($result));
         
         if ($result) {
             // Check if the result indicates an error from the API

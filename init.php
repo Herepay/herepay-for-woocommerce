@@ -419,9 +419,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         // Get raw POST data
         $raw_body = file_get_contents('php://input');
         
-        // Log the raw callback for debugging
-        error_log('Herepay Callback Raw Data: ' . $raw_body);
-        
         // Try to parse as JSON first
         $callback_data = json_decode($raw_body, true);
         
@@ -429,13 +426,9 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         if (json_last_error() !== JSON_ERROR_NONE || !$callback_data) {
             parse_str($raw_body, $callback_data);
         }
-        
-        // Log parsed data
-        error_log('Herepay Callback Parsed Data: ' . wp_json_encode($callback_data));
 
         // Validate required fields
         if (!$callback_data || !isset($callback_data['payment_code'])) {
-            error_log('Herepay Callback Error: Missing payment_code');
             wp_die('Invalid callback data - missing payment_code', 'Herepay Callback', ['response' => 400]);
         }
 
@@ -450,7 +443,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         ]);
 
         if (empty($orders)) {
-            error_log('Herepay Callback Error: Order not found for payment_code: ' . $payment_code);
             wp_die('Order not found', 'Herepay Callback', ['response' => 404]);
         }
 
@@ -468,7 +460,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             $calculated_checksum = $this->generateChecksum($verify_data, $this->private_key);
             
             if ($received_checksum !== $calculated_checksum) {
-                error_log('Herepay Callback Error: Invalid checksum');
                 $order->add_order_note(__('Herepay callback received with invalid checksum - possible security issue.', 'herepay-wc'));
                 wp_die('Invalid checksum', 'Herepay Callback', ['response' => 403]);
             }
@@ -480,9 +471,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         $transaction_id = isset($callback_data['transaction_id']) ? sanitize_text_field($callback_data['transaction_id']) : '';
         $amount = isset($callback_data['amount']) ? floatval($callback_data['amount']) : 0;
         $message = isset($callback_data['message']) ? sanitize_text_field($callback_data['message']) : '';
-        
-        // Log status update
-        error_log("Herepay Callback: Order {$order->get_id()}, Payment Code: {$payment_code}, Status: {$payment_status}, Status Code: {$status_code}, Message: {$message}");
         
         // Handle both status and status_code for comprehensive coverage
         $is_success = (
@@ -501,7 +489,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                     $order->get_total(),
                     $amount
                 ));
-                error_log("Herepay Callback: Amount mismatch for order {$order->get_id()}");
             }
             
             // Mark payment as complete
@@ -516,8 +503,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             
             // Reduce stock
             wc_reduce_stock_levels($order->get_id());
-            
-            error_log("Herepay Callback: Order {$order->get_id()} status updated to: " . $order->get_status());
         } else {
             // Update order based on other Herepay status codes
             switch ($payment_status) {
@@ -550,7 +535,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                     __('Herepay callback received with unknown status: %s', 'herepay-wc'),
                     $payment_status
                 ));
-                error_log("Herepay Callback: Unknown status '{$payment_status}' for order {$order->get_id()}");
                 break;
         }
         }
@@ -609,15 +593,8 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         // Get data from both GET and POST
         $redirect_data = array_merge($_GET, $_POST);
         
-        // Log the redirect data for debugging
-        error_log('Herepay Redirect Data: ' . wp_json_encode($redirect_data));
-        error_log('Herepay Redirect URL accessed at: ' . current_time('Y-m-d H:i:s'));
-        
         // Validate required fields
         if (!isset($redirect_data['payment_code']) || empty($redirect_data['payment_code'])) {
-            // Log missing payment code
-            error_log('Herepay Redirect Error: Missing payment_code in redirect data');
-            
             // Redirect to cart with error if no payment code
             wc_add_notice(__('Invalid payment data received.', 'herepay-wc'), 'error');
             wp_redirect(wc_get_cart_url());
@@ -650,9 +627,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         $amount = isset($redirect_data['amount']) ? floatval($redirect_data['amount']) : 0;
         $message = isset($redirect_data['message']) ? sanitize_text_field($redirect_data['message']) : '';
         
-        // Log the status information for debugging
-        error_log("Herepay Redirect: Order {$order->get_id()}, Payment Code: {$payment_code}, Status: {$payment_status}, Status Code: {$status_code}, Message: {$message}");
-        
         // Verify checksum if available and private key is set
         if (isset($redirect_data['checksum']) && !empty($this->private_key)) {
             $received_checksum = $redirect_data['checksum'];
@@ -665,7 +639,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             $calculated_checksum = $this->generateChecksum($verify_data, $this->private_key);
             
             if ($received_checksum !== $calculated_checksum) {
-                error_log('Herepay Redirect Error: Invalid checksum for order ' . $order->get_id());
                 $order->add_order_note(__('Herepay redirect received with invalid checksum.', 'herepay-wc'));
                 
                 // Redirect to order pay page with error
@@ -696,9 +669,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         );
         
         if ($is_success) {
-            // Log successful payment processing
-            error_log("Herepay Redirect: Processing successful payment for order {$order->get_id()}, status: {$payment_status}, status_code: {$status_code}");
-            
             // If not already completed, mark as complete
             if (!$order->is_paid()) {
                 if ($transaction_id) {
@@ -714,10 +684,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                 
                 // Reduce stock
                 wc_reduce_stock_levels($order->get_id());
-                
-                error_log("Herepay Redirect: Order {$order->get_id()} status updated to: " . $order->get_status());
-            } else {
-                error_log("Herepay Redirect: Order {$order->get_id()} already paid, current status: " . $order->get_status());
             }
             
             // Clear cart
@@ -732,9 +698,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             case '00': // Success
             case 'success':
             case 'completed':
-                // Log successful payment processing
-                error_log("Herepay Redirect: Processing successful payment for order {$order->get_id()}, status: {$payment_status}");
-                
                 // If not already completed, mark as complete
                 if (!$order->is_paid()) {
                     if ($transaction_id) {
@@ -750,10 +713,6 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                     
                     // Reduce stock
                     wc_reduce_stock_levels($order->get_id());
-                    
-                    error_log("Herepay Redirect: Order {$order->get_id()} status updated to: " . $order->get_status());
-                } else {
-                    error_log("Herepay Redirect: Order {$order->get_id()} already paid, current status: " . $order->get_status());
                 }
                 
                 // Clear cart
