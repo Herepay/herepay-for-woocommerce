@@ -369,8 +369,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             return ['result' => 'fail'];
         }
 
-        // Prepare payment data matching Node.js structure
-        $payment_code = 'PAY' . rand(100000, 999999); // Generate 6-digit code with PAY prefix like Node.js
+        $payment_code = 'PAY' . current_time('YmdHis') . $order_id;
         $created_at = current_time('Y-m-d H:i:s');
         
         $data = [
