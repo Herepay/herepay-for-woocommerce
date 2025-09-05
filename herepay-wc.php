@@ -156,7 +156,8 @@ function herepay_get_allowed_html() {
 
 function herepay_handle_payment_processing() {
     // Verify nonce for security
-    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce($_POST['herepay_nonce'], 'herepay_process_payment')) {
+    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce field check only, sanitized in wp_verify_nonce
+    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(wp_unslash($_POST['herepay_nonce']), 'herepay_process_payment')) {
         wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-wc'));
     }
     

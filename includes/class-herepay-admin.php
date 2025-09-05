@@ -206,7 +206,7 @@ class Herepay_Admin {
             wp_die('Unauthorized');
         }
         
-        $payment_code = sanitize_text_field($_POST['payment_code']);
+        $payment_code = sanitize_text_field(wp_unslash($_POST['payment_code']));
         
         if (empty($payment_code)) {
             wp_send_json_error(['message' => __('Payment code is required.', 'herepay-wc')]);

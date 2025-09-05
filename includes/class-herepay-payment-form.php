@@ -33,7 +33,7 @@ class Herepay_Payment_Form {
         }
         
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment form display, order_id from payment flow
-        $payment_code = sanitize_text_field($_GET['order_id']);
+        $payment_code = sanitize_text_field(wp_unslash($_GET['order_id']));
         
         // Find order by payment code
         $orders = wc_get_orders([
