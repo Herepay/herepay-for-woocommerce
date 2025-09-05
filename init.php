@@ -90,6 +90,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             'redirect_url' => [
                 'title' => __('Redirect URL', 'herepay-wc'),
                 'type' => 'text',
+                // translators: %s is the redirect URL
                 'description' => sprintf(__('URL to redirect customers after payment completion. Use: %s', 'herepay-wc'), home_url('/herepay-redirect')),
                 'default' => home_url('/herepay-redirect'),
                 'custom_attributes' => ['readonly' => 'readonly']
@@ -97,6 +98,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             'callback_url' => [
                 'title' => __('Callback URL', 'herepay-wc'),
                 'type' => 'text',
+                // translators: %s is the callback URL
                 'description' => sprintf(__('Webhook URL for payment notifications. Use: %s', 'herepay-wc'), home_url('/wc-api/wc_herepay_payment_gateway')),
                 'default' => home_url('/wc-api/wc_herepay_payment_gateway'),
                 'custom_attributes' => ['readonly' => 'readonly']
@@ -494,6 +496,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             // Verify amount if provided
             if ($amount > 0 && abs($order->get_total() - $amount) > 0.01) {
                 $order->add_order_note(sprintf(
+                    // translators: %1$s is the expected amount, %2$s is the received amount
                     __('Herepay payment amount mismatch. Expected: %s, Received: %s', 'herepay-wc'),
                     $order->get_total(),
                     $amount
@@ -543,6 +546,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             default:
                 // Unknown status - log but don't change order status
                 $order->add_order_note(sprintf(
+                    // translators: %s is the unknown payment status
                     __('Herepay callback received with unknown status: %s', 'herepay-wc'),
                     $payment_status
                 ));
@@ -791,6 +795,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
             default:
                 // Unknown status - redirect to order details with notice
                 $order->add_order_note(sprintf(
+                    // translators: %s is the unknown payment status
                     __('Herepay redirect received with unknown status: %s', 'herepay-wc'),
                     $payment_status
                 ));
