@@ -52,6 +52,108 @@ function herepay_payment_gateway_init() {
 }
 add_action('plugins_loaded', 'herepay_payment_gateway_init');
 
+/**
+ * Define allowed HTML tags for Herepay payment response
+ * Includes script tags to allow redirect functionality
+ */
+function herepay_get_allowed_html() {
+    return array(
+        'script' => array(
+            'type' => array(),
+            'src' => array(),
+            'charset' => array(),
+            'async' => array(),
+            'defer' => array()
+        ),
+        'form' => array(
+            'action' => array(),
+            'method' => array(),
+            'name' => array(),
+            'id' => array(),
+            'class' => array(),
+            'target' => array(),
+            'enctype' => array()
+        ),
+        'input' => array(
+            'type' => array(),
+            'name' => array(),
+            'value' => array(),
+            'id' => array(),
+            'class' => array(),
+            'hidden' => array(),
+            'readonly' => array(),
+            'disabled' => array()
+        ),
+        'button' => array(
+            'type' => array(),
+            'name' => array(),
+            'value' => array(),
+            'id' => array(),
+            'class' => array(),
+            'onclick' => array()
+        ),
+        'div' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'span' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'p' => array(
+            'id' => array(),
+            'class' => array(),
+            'style' => array()
+        ),
+        'a' => array(
+            'href' => array(),
+            'target' => array(),
+            'id' => array(),
+            'class' => array(),
+            'onclick' => array()
+        ),
+        'img' => array(
+            'src' => array(),
+            'alt' => array(),
+            'width' => array(),
+            'height' => array(),
+            'id' => array(),
+            'class' => array()
+        ),
+        'br' => array(),
+        'hr' => array(),
+        'strong' => array(),
+        'em' => array(),
+        'b' => array(),
+        'i' => array(),
+        'u' => array(),
+        'h1' => array('id' => array(), 'class' => array()),
+        'h2' => array('id' => array(), 'class' => array()),
+        'h3' => array('id' => array(), 'class' => array()),
+        'h4' => array('id' => array(), 'class' => array()),
+        'h5' => array('id' => array(), 'class' => array()),
+        'h6' => array('id' => array(), 'class' => array()),
+        'ul' => array('id' => array(), 'class' => array()),
+        'ol' => array('id' => array(), 'class' => array()),
+        'li' => array('id' => array(), 'class' => array()),
+        'table' => array('id' => array(), 'class' => array()),
+        'tr' => array('id' => array(), 'class' => array()),
+        'td' => array('id' => array(), 'class' => array()),
+        'th' => array('id' => array(), 'class' => array()),
+        'meta' => array(
+            'name' => array(),
+            'content' => array(),
+            'http-equiv' => array()
+        ),
+        'noscript' => array(),
+        'style' => array(
+            'type' => array()
+        )
+    );
+}
+
 function herepay_handle_payment_processing() {
     error_log('Herepay handler function called - POST: ' . json_encode($_POST));
     error_log('Herepay handler function called - REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
@@ -101,10 +203,10 @@ function herepay_handle_payment_processing() {
     ]);
 
     if (is_wp_error($response)) {
-        wp_die('Error initiating payment: ' . $response->get_error_message());
+        wp_die('Error initiating payment: ' . esc_html($response->get_error_message()));
     } else {
         $body = wp_remote_retrieve_body($response);
-        echo $body;
+        echo wp_kses($body, herepay_get_allowed_html());
     }
     exit;
 }/**
