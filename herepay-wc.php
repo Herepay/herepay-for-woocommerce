@@ -5,7 +5,7 @@
  * Version: 1.0.0
  * Author: Herepay
  * Author URI: https://herepay.org
- * Text Domain: herepay-payment-gateway
+ * Text Domain: herepay-wc
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.8
@@ -30,7 +30,7 @@ if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get
 
 function herepay_woocommerce_missing_notice() {
     echo '<div class="notice notice-error"><p>';
-    echo __('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-payment-gateway');
+    echo __('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-wc');
     echo '</p></div>';
 }
 
@@ -153,8 +153,8 @@ add_action('woocommerce_blocks_loaded', 'herepay_register_payment_method_block')
  * Add custom links to plugin page
  */
 function herepay_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-payment-gateway') . '</a>';
-    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-payment-gateway') . '</a>';
+    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-wc') . '</a>';
+    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-wc') . '</a>';
     
     array_unshift($links, $settings_link, $docs_link);
     return $links;
@@ -166,8 +166,8 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'herepay_plugin_a
  */
 function herepay_plugin_row_meta($links, $file) {
     if (plugin_basename(__FILE__) === $file) {
-        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'herepay-payment-gateway') . '</a>';
-        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'herepay-payment-gateway') . '</a>';
+        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'herepay-wc') . '</a>';
+        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'herepay-wc') . '</a>';
     }
     return $links;
 }
@@ -267,7 +267,7 @@ function herepay_enqueue_scripts() {
         
         wp_localize_script('herepay-checkout', 'herepay_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
-            'loading_text' => __('Processing payment...', 'herepay-payment-gateway')
+            'loading_text' => __('Processing payment...', 'herepay-wc')
         ]);
     }
 }
