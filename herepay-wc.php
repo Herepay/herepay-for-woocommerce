@@ -87,26 +87,25 @@ function herepay_handle_payment_processing() {
     $form_data['checksum'] = $checksum;
 
     $headers = [
-        "SecretKey: " . $secret_key,
-        "XApiKey: " . $api_key,
-        "Content-Type: application/x-www-form-urlencoded"
+        'SecretKey' => $secret_key,
+        'XApiKey' => $api_key,
+        'Content-Type' => 'application/x-www-form-urlencoded'
     ];
 
-    $ch = curl_init('https://uat.herepay.org/api/v1/herepay/initiate');
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($form_data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $response = wp_remote_post('https://uat.herepay.org/api/v1/herepay/initiate', [
+        'method' => 'POST',
+        'headers' => $headers,
+        'body' => http_build_query($form_data),
+        'timeout' => 30,
+        'sslverify' => true
+    ]);
 
-    $response = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        wp_die('Error initiating payment: ' . curl_error($ch));
+    if (is_wp_error($response)) {
+        wp_die('Error initiating payment: ' . $response->get_error_message());
     } else {
-        echo $response;
+        $body = wp_remote_retrieve_body($response);
+        echo $body;
     }
-
-    curl_close($ch);
     exit;
 }/**
  * Declare HPOS and Blocks compatibility

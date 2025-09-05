@@ -192,7 +192,6 @@ Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
 * WordPress 5.0 or higher
 * WooCommerce 5.0 or higher
 * PHP 8.1 or higher
-* cURL extension enabled
 * SSL certificate (required for production)
 * Valid Herepay merchant account
 
