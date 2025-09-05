@@ -155,6 +155,11 @@ function herepay_get_allowed_html() {
 }
 
 function herepay_handle_payment_processing() {
+    // Verify nonce for security
+    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce($_POST['herepay_nonce'], 'herepay_process_payment')) {
+        wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-wc'));
+    }
+    
     $form_data = $_POST;
     
     if (empty($form_data)) {
@@ -164,6 +169,7 @@ function herepay_handle_payment_processing() {
     $order_id = isset($form_data['order_id']) ? intval($form_data['order_id']) : 0;
     unset($form_data['order_id']);
     unset($form_data['action']);
+    unset($form_data['herepay_nonce']); // Remove nonce from payment data
     
     $order = $order_id ? wc_get_order($order_id) : null;
     

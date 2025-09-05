@@ -276,6 +276,10 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         
         echo '</select>';
         echo '<input type="hidden" id="herepay_payment_method" name="herepay_payment_method" value="" />';
+        
+        // Add nonce field for security
+        wp_nonce_field('herepay_checkout_nonce', 'herepay_checkout_nonce_field');
+        
         echo '</div>';
 
         // Add JavaScript for dynamic payment method selection
@@ -303,6 +307,15 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
      * Handles both classic and block checkout validation
      */
     public function validate_fields() {
+        // For checkout forms, we verify the checkout nonce if available
+        // WooCommerce handles main security through its own nonce system
+        if (isset($_POST['herepay_checkout_nonce_field'])) {
+            if (!wp_verify_nonce($_POST['herepay_checkout_nonce_field'], 'herepay_checkout_nonce')) {
+                wc_add_notice(__('Security verification failed. Please try again.', 'herepay-wc'), 'error');
+                return false;
+            }
+        }
+        
         // Get bank prefix from either classic form or block checkout
         $bank_prefix = $this->get_payment_post_data('herepay_bank_prefix');
         $payment_method = $this->get_payment_post_data('herepay_payment_method');
@@ -323,15 +336,20 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
     /**
      * Get payment POST data with fallback for block checkout
      * Block checkout sends data differently than classic checkout
+     * Note: $_POST access is safe here as this is called within WooCommerce's secure checkout context
      */
     public function get_payment_post_data($key) {
         // First try classic checkout $_POST
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
         if (isset($_POST[$key]) && !empty($_POST[$key])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
             return sanitize_text_field($_POST[$key]);
         }
         
         // Try block checkout format - data might be in payment_data array
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
         if (isset($_POST['payment_data']) && is_array($_POST['payment_data'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
             foreach ($_POST['payment_data'] as $data) {
                 if (isset($data['key']) && $data['key'] === $key && !empty($data['value'])) {
                     return sanitize_text_field($data['value']);
@@ -340,7 +358,9 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         }
         
         // Try direct key in case block sends it differently
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
         if (isset($_POST['payment_method_data']) && isset($_POST['payment_method_data'][$key])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
             return sanitize_text_field($_POST['payment_method_data'][$key]);
         }
         
@@ -414,9 +434,11 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
     /**
      * Handle webhook/callback from Herepay
      * Based on https://herepay.readme.io/reference/post_callback
+     * Note: Webhooks from external services cannot use nonces - we verify using checksum instead
      */
     public function handle_callback() {
         // Get raw POST data
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External webhook, verified via checksum
         $raw_body = file_get_contents('php://input');
         
         // Try to parse as JSON first
@@ -583,6 +605,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
     /**
      * Handle Herepay redirect URL - /herepay-redirect
      * Processes payment completion data similar to callback
+     * Note: This handles redirects from external payment gateway - cannot use nonces
      */
     public function handle_herepay_redirect() {
         // Check if this is a Herepay redirect request
@@ -591,6 +614,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         }
         
         // Get data from both GET and POST
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway
         $redirect_data = array_merge($_GET, $_POST);
         
         // Validate required fields

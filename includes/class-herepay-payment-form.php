@@ -12,6 +12,7 @@ class Herepay_Payment_Form {
     }
     
     public static function handle_payment_form_request() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public payment form display, no state changes
         if (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form') {
             self::display_payment_form();
             exit;
@@ -19,16 +20,19 @@ class Herepay_Payment_Form {
     }
     
     public static function enqueue_scripts() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking for payment form display, no state changes
         if (is_checkout() || (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form')) {
             wp_enqueue_script('jquery');
         }
     }
     
     public static function display_payment_form() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment form display, order_id from payment flow
         if (!isset($_GET['order_id'])) {
             wp_die('Invalid payment request');
         }
         
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment form display, order_id from payment flow
         $payment_code = sanitize_text_field($_GET['order_id']);
         
         // Find order by payment code
@@ -182,6 +186,7 @@ class Herepay_Payment_Form {
                                 <!-- Form POSTs to WordPress admin-post.php handler -->
                 <form id="herepay-payment-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="POST">
                     <input type="hidden" name="action" value="herepay_process">
+                    <?php wp_nonce_field('herepay_process_payment', 'herepay_nonce'); ?>
                     <?php 
                     foreach ($data as $key => $value): ?>
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
