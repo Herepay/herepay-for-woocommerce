@@ -14,7 +14,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
 
     public function __construct() {
         $this->id = 'herepay_payment_gateway';
-        $this->icon = plugin_dir_url(dirname(__FILE__)) . 'assets/images/herepay-logo.png';
+        $this->icon = plugin_dir_url(__FILE__) . 'assets/images/herepay-logo.png';
         $this->method_title = __('Herepay Payment Gateway', 'herepay-wc');
         $this->method_description = __('Herepay Payment Gateway integration for secure online payments.', 'herepay-wc');
         $this->supports = ['products'];
