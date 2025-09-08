@@ -85,8 +85,8 @@ callback_url: Webhook notification URL
 
 ## Files Structure:
 ```
-herepay-wc/
-├── herepay-wc.php                    # Main plugin file
+herepay-for-woocommerce/
+├── herepay-for-woocommerce.php                    # Main plugin file
 ├── init.php                          # Payment gateway class
 ├── includes/
 │   ├── class-herepay-admin.php       # Admin dashboard

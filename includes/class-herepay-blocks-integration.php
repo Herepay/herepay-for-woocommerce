@@ -54,14 +54,14 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
      */
     public function get_payment_method_script_handles() {
         $script_path       = '/assets/blocks/herepay-blocks.js';
-        $script_asset_path = HEREPAY_WC_PLUGIN_PATH . 'assets/blocks/herepay-blocks.asset.php';
+        $script_asset_path = HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH . 'assets/blocks/herepay-blocks.asset.php';
         $script_asset      = file_exists($script_asset_path)
             ? require($script_asset_path)
             : array(
                 'dependencies' => array(),
-                'version'      => HEREPAY_WC_VERSION
+                'version'      => HEREPAY_FOR_WOOCOMMERCE_VERSION
             );
-        $script_url        = HEREPAY_WC_PLUGIN_URL . $script_path;
+        $script_url        = HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . $script_path;
 
         wp_register_script(
             'herepay-blocks-integration',
@@ -74,9 +74,9 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
         // Register and enqueue the CSS for blocks
         wp_register_style(
             'herepay-blocks-style',
-            HEREPAY_WC_PLUGIN_URL . '/assets/blocks/herepay-blocks.css',
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . '/assets/blocks/herepay-blocks.css',
             [],
-            HEREPAY_WC_VERSION
+            HEREPAY_FOR_WOOCOMMERCE_VERSION
         );
         wp_enqueue_style('herepay-blocks-style');
 

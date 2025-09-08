@@ -34,7 +34,7 @@ A secure and reliable payment gateway plugin that integrates Herepay payment ser
 ### Method 2: Manual Installation
 
 1. Download and extract the plugin files
-2. Upload the `herepay-wc` folder to `/wp-content/plugins/` directory
+2. Upload the `herepay-for-woocommerce` folder to `/wp-content/plugins/` directory
 3. Login to WordPress Admin Panel
 4. Navigate to **Plugins > Installed Plugins**
 5. Find "Herepay Payment Gateway" and click **Activate**
@@ -43,7 +43,7 @@ A secure and reliable payment gateway plugin that integrates Herepay payment ser
 
 1. Extract the plugin files
 2. Connect to your server via FTP
-3. Upload the `herepay-wc` folder to `/wp-content/plugins/`
+3. Upload the `herepay-for-woocommerce` folder to `/wp-content/plugins/`
 4. Login to WordPress Admin and activate the plugin
 
 ## Configuration
