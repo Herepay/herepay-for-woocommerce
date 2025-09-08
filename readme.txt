@@ -1,4 +1,4 @@
-=== Herepay Payment Gateway ===
+=== Herepay Payment Gateway for WooCommerce ===
 Contributors: herepay, adisazizan, aleprosli
 Tags: payment, gateway, woocommerce, herepay, malaysia
 Requires at least: 5.0
