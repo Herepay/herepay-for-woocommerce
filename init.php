@@ -311,7 +311,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         // WooCommerce handles main security through its own nonce system
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce field check, sanitized below
         if (isset($_POST['herepay_checkout_nonce_field'])) {
-            if (!wp_verify_nonce(wp_unslash($_POST['herepay_checkout_nonce_field']), 'herepay_checkout_nonce')) {
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['herepay_checkout_nonce_field'])), 'herepay_checkout_nonce')) {
                 wc_add_notice(__('Security verification failed. Please try again.', 'herepay-wc'), 'error');
                 return false;
             }
@@ -444,6 +444,8 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         $raw_body = file_get_contents('php://input');
         
         // Try to parse as JSON first
+        // Note: We use checksum verification for webhook security instead of traditional sanitization
+        // as this is external webhook data that needs to be verified via HMAC checksum
         $callback_data = json_decode($raw_body, true);
         
         // If JSON parsing failed, try to parse as form data
