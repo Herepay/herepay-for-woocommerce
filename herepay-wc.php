@@ -1,11 +1,12 @@
 <?php
 /**
- * Plugin Name: Herepay Payment Gateway
+ * Plugin Name: Herepay Payment Gateway for WooCommerce
  * Description: Herepay Payment Gateway for WooCommerce - Accept secure online payments through Herepay.
  * Version: 1.0.0
  * Author: Herepay
  * Author URI: https://herepay.org
  * Text Domain: herepay-wc
+ * Requires Plugins: woocommerce
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.8
@@ -156,8 +157,7 @@ function herepay_get_allowed_html() {
 
 function herepay_handle_payment_processing() {
     // Verify nonce for security
-    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce field check only, sanitized in wp_verify_nonce
-    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(wp_unslash($_POST['herepay_nonce']), 'herepay_process_payment')) {
+    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['herepay_nonce'])), 'herepay_process_payment')) {
         wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-wc'));
     }
     
