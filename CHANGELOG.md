@@ -47,8 +47,8 @@ All notable changes to the Herepay Payment Gateway for WooCommerce will be docum
 
 ### Files Added
 ```
-herepay-wc/
-├── herepay-wc.php (Main plugin file)
+herepay-for-woocommerce/
+├── herepay-for-woocommerce.php (Main plugin file)
 ├── init.php (Payment gateway class)
 ├── README.md (Documentation)
 ├── CHANGELOG.md (This file)

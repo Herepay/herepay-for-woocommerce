@@ -5,7 +5,7 @@
  * Version: 1.0.0
  * Author: Herepay
  * Author URI: https://herepay.org
- * Text Domain: herepay-wc
+ * Text Domain: herepay-for-woocommerce
  * Requires Plugins: woocommerce
  * Domain Path: /languages
  * Requires at least: 5.0
@@ -20,9 +20,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HEREPAY_WC_VERSION', '1.0.0');
-define('HEREPAY_WC_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('HEREPAY_WC_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.0');
+define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
     add_action('admin_notices', 'herepay_woocommerce_missing_notice');
@@ -31,7 +31,7 @@ if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get
 
 function herepay_woocommerce_missing_notice() {
     echo '<div class="notice notice-error"><p>';
-    echo esc_html__('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-wc');
+    echo esc_html__('Herepay Payment Gateway requires WooCommerce to be installed and active.', 'herepay-for-woocommerce');
     echo '</p></div>';
 }
 
@@ -40,10 +40,10 @@ function herepay_payment_gateway_init() {
         return;
     }
     
-    include_once HEREPAY_WC_PLUGIN_PATH . 'init.php';
-    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-payment-form.php';
-    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-admin.php';
-    include_once HEREPAY_WC_PLUGIN_PATH . 'includes/class-herepay-blocks-integration.php';
+    include_once HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH . 'init.php';
+    include_once HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH . 'includes/class-herepay-payment-form.php';
+    include_once HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH . 'includes/class-herepay-admin.php';
+    include_once HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH . 'includes/class-herepay-blocks-integration.php';
     
     Herepay_Payment_Form::init();
     Herepay_Admin::init();
@@ -157,8 +157,8 @@ function herepay_get_allowed_html() {
 
 function herepay_handle_payment_processing() {
     // Verify nonce for security
-    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['herepay_nonce'])), 'herepay_process_payment')) {
-        wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-wc'));
+    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(wp_unslash($_POST['herepay_nonce']), 'herepay_process_payment')) {
+        wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-for-woocommerce'));
     }
     
     $form_data = $_POST;
@@ -255,8 +255,8 @@ add_action('woocommerce_blocks_loaded', 'herepay_register_payment_method_block')
  * Add custom links to plugin page
  */
 function herepay_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-wc') . '</a>';
-    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-wc') . '</a>';
+    $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-for-woocommerce') . '</a>';
+    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-for-woocommerce') . '</a>';
     
     array_unshift($links, $settings_link, $docs_link);
     return $links;
@@ -268,8 +268,8 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'herepay_plugin_a
  */
 function herepay_plugin_row_meta($links, $file) {
     if (plugin_basename(__FILE__) === $file) {
-        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'herepay-wc') . '</a>';
-        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'herepay-wc') . '</a>';
+        $links[] = '<a href="' . admin_url('admin.php?page=herepay-settings') . '">' . __('Herepay Dashboard', 'herepay-for-woocommerce') . '</a>';
+        $links[] = '<a href="https://herepay.org/support" target="_blank">' . __('Support', 'herepay-for-woocommerce') . '</a>';
     }
     return $links;
 }
@@ -348,22 +348,22 @@ function herepay_enqueue_scripts() {
         wp_enqueue_script('jquery');
         wp_enqueue_script(
             'herepay-checkout', 
-            HEREPAY_WC_PLUGIN_URL . 'assets/checkout.js', 
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/checkout.js', 
             ['jquery'], 
-            HEREPAY_WC_VERSION, 
+            HEREPAY_FOR_WOOCOMMERCE_VERSION, 
             true
         );
         
         wp_enqueue_style(
             'herepay-checkout-style',
-            HEREPAY_WC_PLUGIN_URL . 'assets/checkout.css',
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/checkout.css',
             [],
-            HEREPAY_WC_VERSION
+            HEREPAY_FOR_WOOCOMMERCE_VERSION
         );
         
         wp_localize_script('herepay-checkout', 'herepay_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
-            'loading_text' => __('Processing payment...', 'herepay-wc')
+            'loading_text' => __('Processing payment...', 'herepay-for-woocommerce')
         ]);
     }
 }

@@ -15,9 +15,9 @@ class Herepay_Admin {
     
     public static function add_admin_menu() {
         add_submenu_page(
-            'herepay-wc',
-            __('Herepay Settings', 'herepay-wc'),
-            __('Herepay', 'herepay-wc'),
+            'herepay-for-woocommerce',
+            __('Herepay Settings', 'herepay-for-woocommerce'),
+            __('Herepay', 'herepay-for-woocommerce'),
             'manage_woocommerce',
             'herepay-settings',
             [__CLASS__, 'admin_page']
@@ -42,32 +42,32 @@ class Herepay_Admin {
         $test_mode = $gateway->environment === 'sandbox';
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Herepay Payment Gateway', 'herepay-wc'); ?></h1>
+            <h1><?php esc_html_e('Herepay Payment Gateway', 'herepay-for-woocommerce'); ?></h1>
             
             <div class="herepay-admin-container">
                 <div class="herepay-status-card">
-                    <h2><?php esc_html_e('Gateway Status', 'herepay-wc'); ?></h2>
+                    <h2><?php esc_html_e('Gateway Status', 'herepay-for-woocommerce'); ?></h2>
                     <div class="status-item">
-                        <span class="status-label"><?php esc_html_e('Environment:', 'herepay-wc'); ?></span>
+                        <span class="status-label"><?php esc_html_e('Environment:', 'herepay-for-woocommerce'); ?></span>
                         <span class="status-value <?php echo $test_mode ? 'test-mode' : 'live-mode'; ?>">
-                            <?php echo $test_mode ? esc_html__('Sandbox', 'herepay-wc') : esc_html__('Production', 'herepay-wc'); ?>
+                            <?php echo $test_mode ? esc_html__('Sandbox', 'herepay-for-woocommerce') : esc_html__('Production', 'herepay-for-woocommerce'); ?>
                         </span>
                     </div>
                     <div class="status-item">
-                        <span class="status-label"><?php esc_html_e('Gateway Enabled:', 'herepay-wc'); ?></span>
+                        <span class="status-label"><?php esc_html_e('Gateway Enabled:', 'herepay-for-woocommerce'); ?></span>
                         <span class="status-value <?php echo $gateway->enabled === 'yes' ? 'enabled' : 'disabled'; ?>">
-                            <?php echo $gateway->enabled === 'yes' ? esc_html__('Yes', 'herepay-wc') : esc_html__('No', 'herepay-wc'); ?>
+                            <?php echo $gateway->enabled === 'yes' ? esc_html__('Yes', 'herepay-for-woocommerce') : esc_html__('No', 'herepay-for-woocommerce'); ?>
                         </span>
                     </div>
                     <div class="status-item">
-                        <span class="status-label"><?php esc_html_e('API Key:', 'herepay-wc'); ?></span>
+                        <span class="status-label"><?php esc_html_e('API Key:', 'herepay-for-woocommerce'); ?></span>
                         <span class="status-value <?php echo !empty($gateway->api_key) ? 'configured' : 'not-configured'; ?>">
-                            <?php echo !empty($gateway->api_key) ? esc_html__('Configured', 'herepay-wc') : esc_html__('Not Configured', 'herepay-wc'); ?>
+                            <?php echo !empty($gateway->api_key) ? esc_html__('Configured', 'herepay-for-woocommerce') : esc_html__('Not Configured', 'herepay-for-woocommerce'); ?>
                         </span>
                     </div>
                     
                     <button type="button" id="test-connection" class="button button-secondary">
-                        <?php esc_html_e('Test API Connection', 'herepay-wc'); ?>
+                        <?php esc_html_e('Test API Connection', 'herepay-for-woocommerce'); ?>
                     </button>
                     <div id="connection-result"></div>
                     
@@ -75,34 +75,34 @@ class Herepay_Admin {
                 </div>
                 
                 <div class="herepay-tools-card">
-                    <h2><?php esc_html_e('Transaction Tools', 'herepay-wc'); ?></h2>
+                    <h2><?php esc_html_e('Transaction Tools', 'herepay-for-woocommerce'); ?></h2>
                     <div class="tool-item">
-                        <label for="transaction-code"><?php esc_html_e('Check Transaction Status:', 'herepay-wc'); ?></label>
-                        <input type="text" id="transaction-code" placeholder="<?php esc_attr_e('Enter payment code...', 'herepay-wc'); ?>" />
+                        <label for="transaction-code"><?php esc_html_e('Check Transaction Status:', 'herepay-for-woocommerce'); ?></label>
+                        <input type="text" id="transaction-code" placeholder="<?php esc_attr_e('Enter payment code...', 'herepay-for-woocommerce'); ?>" />
                         <button type="button" id="check-transaction" class="button button-secondary">
-                            <?php esc_html_e('Check Status', 'herepay-wc'); ?>
+                            <?php esc_html_e('Check Status', 'herepay-for-woocommerce'); ?>
                         </button>
                     </div>
                     <div id="transaction-result"></div>
                 </div>
                 
                 <div class="herepay-logs-card">
-                    <h2><?php esc_html_e('Recent Transactions', 'herepay-wc'); ?></h2>
+                    <h2><?php esc_html_e('Recent Transactions', 'herepay-for-woocommerce'); ?></h2>
                     <?php self::display_recent_transactions(); ?>
                 </div>
                 
                 <div class="herepay-docs-card">
-                    <h2><?php esc_html_e('Documentation & Support', 'herepay-wc'); ?></h2>
-                    <p><?php esc_html_e('For detailed integration guide and API documentation, visit:', 'herepay-wc'); ?></p>
+                    <h2><?php esc_html_e('Documentation & Support', 'herepay-for-woocommerce'); ?></h2>
+                    <p><?php esc_html_e('For detailed integration guide and API documentation, visit:', 'herepay-for-woocommerce'); ?></p>
                     <a href="https://herepay.readme.io" target="_blank" class="button button-primary">
-                        <?php esc_html_e('View Documentation', 'herepay-wc'); ?>
+                        <?php esc_html_e('View Documentation', 'herepay-for-woocommerce'); ?>
                     </a>
                     
-                    <h3><?php esc_html_e('Webhook URL', 'herepay-wc'); ?></h3>
-                    <p><?php esc_html_e('Configure this URL in your Herepay dashboard for payment notifications:', 'herepay-wc'); ?></p>
+                    <h3><?php esc_html_e('Webhook URL', 'herepay-for-woocommerce'); ?></h3>
+                    <p><?php esc_html_e('Configure this URL in your Herepay dashboard for payment notifications:', 'herepay-for-woocommerce'); ?></p>
                     <code><?php echo esc_url(home_url('/wc-api/wc_herepay_payment_gateway')); ?></code>
                     <button type="button" class="button button-small" onclick="navigator.clipboard.writeText('<?php echo esc_js(home_url('/wc-api/wc_herepay_payment_gateway')); ?>')">
-                        <?php esc_html_e('Copy', 'herepay-wc'); ?>
+                        <?php esc_html_e('Copy', 'herepay-for-woocommerce'); ?>
                     </button>
                 </div>
             </div>
@@ -119,19 +119,19 @@ class Herepay_Admin {
         ]);
         
         if (empty($orders)) {
-            echo '<p>' . esc_html__('No Herepay transactions found.', 'herepay-wc') . '</p>';
+            echo '<p>' . esc_html__('No Herepay transactions found.', 'herepay-for-woocommerce') . '</p>';
             return;
         }
         
         echo '<table class="wp-list-table widefat fixed striped">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>' . esc_html__('Order ID', 'herepay-wc') . '</th>';
-        echo '<th>' . esc_html__('Payment Code', 'herepay-wc') . '</th>';
-        echo '<th>' . esc_html__('Amount', 'herepay-wc') . '</th>';
-        echo '<th>' . esc_html__('Status', 'herepay-wc') . '</th>';
-        echo '<th>' . esc_html__('Date', 'herepay-wc') . '</th>';
-        echo '<th>' . esc_html__('Actions', 'herepay-wc') . '</th>';
+        echo '<th>' . esc_html__('Order ID', 'herepay-for-woocommerce') . '</th>';
+        echo '<th>' . esc_html__('Payment Code', 'herepay-for-woocommerce') . '</th>';
+        echo '<th>' . esc_html__('Amount', 'herepay-for-woocommerce') . '</th>';
+        echo '<th>' . esc_html__('Status', 'herepay-for-woocommerce') . '</th>';
+        echo '<th>' . esc_html__('Date', 'herepay-for-woocommerce') . '</th>';
+        echo '<th>' . esc_html__('Actions', 'herepay-for-woocommerce') . '</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -146,7 +146,7 @@ class Herepay_Admin {
             echo '<td>' . esc_html($order->get_date_created()->date('Y-m-d H:i:s')) . '</td>';
             echo '<td>';
             if ($payment_code) {
-                echo '<button type="button" class="button button-small check-status-btn" data-code="' . esc_attr($payment_code) . '">' . esc_html__('Check Status', 'herepay-wc') . '</button>';
+                echo '<button type="button" class="button button-small check-status-btn" data-code="' . esc_attr($payment_code) . '">' . esc_html__('Check Status', 'herepay-for-woocommerce') . '</button>';
             }
             echo '</td>';
             echo '</tr>';
@@ -161,7 +161,7 @@ class Herepay_Admin {
             check_ajax_referer('herepay_admin_nonce', 'nonce');
         } catch (Exception $e) {
             wp_send_json_error([
-                'message' => __('Security verification failed.', 'herepay-wc'),
+                'message' => __('Security verification failed.', 'herepay-for-woocommerce'),
                 'debug' => 'Nonce verification failed'
             ]);
             return;
@@ -169,7 +169,7 @@ class Herepay_Admin {
         
         if (!current_user_can('manage_woocommerce')) {
             wp_send_json_error([
-                'message' => __('Insufficient permissions.', 'herepay-wc'),
+                'message' => __('Insufficient permissions.', 'herepay-for-woocommerce'),
                 'debug' => 'User does not have manage_woocommerce capability'
             ]);
             return;
@@ -182,18 +182,18 @@ class Herepay_Admin {
             
             if ($channels && isset($channels['data'])) {
                 wp_send_json_success([
-                    'message' => __('API connection successful!', 'herepay-wc'),
+                    'message' => __('API connection successful!', 'herepay-for-woocommerce'),
                     'channels_count' => count($channels['data'])
                 ]);
             } else {
                 wp_send_json_error([
-                    'message' => __('API connection failed. Please check your credentials.', 'herepay-wc'),
+                    'message' => __('API connection failed. Please check your credentials.', 'herepay-for-woocommerce'),
                     'debug' => 'Gateway test failed - no data returned'
                 ]);
             }
         } catch (Exception $e) {
             wp_send_json_error([
-                'message' => __('API connection test failed.', 'herepay-wc'),
+                'message' => __('API connection test failed.', 'herepay-for-woocommerce'),
                 'debug' => 'Exception: ' . $e->getMessage()
             ]);
         }
@@ -209,7 +209,7 @@ class Herepay_Admin {
         $payment_code = sanitize_text_field(wp_unslash($_POST['payment_code']));
         
         if (empty($payment_code)) {
-            wp_send_json_error(['message' => __('Payment code is required.', 'herepay-wc')]);
+            wp_send_json_error(['message' => __('Payment code is required.', 'herepay-for-woocommerce')]);
         }
         
         // Special test cases for provided payment codes
@@ -273,7 +273,7 @@ class Herepay_Admin {
             if (isset($result['status']) && is_numeric($result['status']) && $result['status'] >= 400) {
                 // API returned an error status
                 wp_send_json_error([
-                    'message' => $result['message'] ?? __('Transaction not found or API error occurred.', 'herepay-wc')
+                    'message' => $result['message'] ?? __('Transaction not found or API error occurred.', 'herepay-for-woocommerce')
                 ]);
             } else if (isset($result['data'])) {
                 // If result already has 'data' key, use it
@@ -283,7 +283,7 @@ class Herepay_Admin {
                 wp_send_json_success(['data' => $result]);
             }
         } else {
-            wp_send_json_error(['message' => __('Unable to fetch transaction status. Please check if the payment code is correct.', 'herepay-wc')]);
+            wp_send_json_error(['message' => __('Unable to fetch transaction status. Please check if the payment code is correct.', 'herepay-for-woocommerce')]);
         }
     }
 }

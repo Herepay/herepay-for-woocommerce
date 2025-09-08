@@ -21,7 +21,7 @@ Your Herepay Payment Gateway now supports **both Classic and Block-based checkou
 ## 📁 New Files Added
 
 ```
-wp-content/plugins/herepay-wc/
+wp-content/plugins/herepay-for-woocommerce/
 ├── includes/
 │   └── class-herepay-blocks-integration.php    # Block integration class
 └── assets/
@@ -33,7 +33,7 @@ wp-content/plugins/herepay-wc/
 
 ## 🔧 Enhanced Files
 
-### **herepay-wc.php**
+### **herepay-for-woocommerce.php**
 - ✅ Added blocks integration loader
 - ✅ Added blocks registration function  
 - ✅ Declared `cart_checkout_blocks` compatibility
@@ -115,7 +115,7 @@ public function get_payment_post_data($key) {
 
 ### **1. Upload Enhanced Files**
 Upload these files to your UAT environment:
-- `herepay-wc.php` (updated)
+- `herepay-for-woocommerce.php` (updated)
 - `init.php` (updated)  
 - `includes/class-herepay-blocks-integration.php` (new)
 - `assets/blocks/` folder (new - all files)

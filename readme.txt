@@ -71,7 +71,7 @@ Herepay Payment Gateway for WooCommerce is a comprehensive payment solution that
 **FTP Installation:**
 
 1. Download and extract the plugin files
-2. Upload the `herepay-wc` folder to `/wp-content/plugins/` directory via FTP
+2. Upload the `herepay-for-woocommerce` folder to `/wp-content/plugins/` directory via FTP
 3. Login to WordPress admin and activate the plugin under **Plugins > Installed Plugins**
 
 == Configuration ==
@@ -218,7 +218,7 @@ Please review Herepay's privacy policy at [https://herepay.org/privacy](https://
 == Additional Information ==
 
 **Developer**: Herepay  
-**Plugin URI**: [https://github.com/Herepay/herepay-wc](https://github.com/Herepay/herepay-wc)  
+**Plugin URI**: [https://github.com/Herepay/herepay-for-woocommerce](https://github.com/Herepay/herepay-for-woocommerce)  
 **Author URI**: [https://herepay.org](https://herepay.org)
 
 This plugin is developed and maintained by the Herepay team to provide seamless payment integration for Malaysian businesses and organization using WooCommerce.
