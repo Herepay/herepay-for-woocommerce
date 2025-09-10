@@ -157,20 +157,46 @@ function herepay_get_allowed_html() {
 
 function herepay_handle_payment_processing() {
     // Verify nonce for security
-    if (!isset($_POST['herepay_nonce']) || !wp_verify_nonce(wp_unslash($_POST['herepay_nonce']), 'herepay_process_payment')) {
+    if (!isset($_POST['herepay_nonce'])) {
         wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-for-woocommerce'));
     }
     
-    $form_data = $_POST;
-    
-    if (empty($form_data)) {
-        wp_die('No form data received. Debug - POST: ' . esc_html(json_encode($_POST)));
+    $nonce = sanitize_text_field(wp_unslash($_POST['herepay_nonce']));
+    if (!wp_verify_nonce($nonce, 'herepay_process_payment')) {
+        wp_die(esc_html__('Security verification failed. Please try again.', 'herepay-for-woocommerce'));
     }
-
-    $order_id = isset($form_data['order_id']) ? intval($form_data['order_id']) : 0;
-    unset($form_data['order_id']);
-    unset($form_data['action']);
-    unset($form_data['herepay_nonce']); // Remove nonce from payment data
+    
+    // Validate required fields first
+    if (!isset($_POST['order_id']) || !isset($_POST['payment_code']) || !isset($_POST['amount'])) {
+        wp_die(esc_html__('Required payment data missing.', 'herepay-for-woocommerce'));
+    }
+    
+    // Extract and sanitize only the required fields for payment processing
+    $order_id = intval($_POST['order_id']);
+    $payment_code = sanitize_text_field(wp_unslash($_POST['payment_code']));
+    $amount = sanitize_text_field(wp_unslash($_POST['amount']));
+    $name = sanitize_text_field(wp_unslash($_POST['name'] ?? ''));
+    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+    $phone = sanitize_text_field(wp_unslash($_POST['phone'] ?? ''));
+    $description = sanitize_text_field(wp_unslash($_POST['description'] ?? ''));
+    $bank_prefix = sanitize_text_field(wp_unslash($_POST['bank_prefix'] ?? ''));
+    $payment_method = sanitize_text_field(wp_unslash($_POST['payment_method'] ?? ''));
+    $redirect_url = esc_url_raw(wp_unslash($_POST['redirect_url'] ?? ''));
+    $created_at = sanitize_text_field(wp_unslash($_POST['created_at'] ?? ''));
+    
+    // Rebuild form data with sanitized values
+    $form_data = [
+        'payment_code' => $payment_code,
+        'amount' => $amount,
+        'name' => $name,
+        'email' => $email,
+        'phone' => $phone,
+        'description' => $description,
+        'bank_prefix' => $bank_prefix,
+        'payment_method' => $payment_method,
+        'redirect_url' => $redirect_url,
+        'created_at' => $created_at
+    ];
     
     $order = $order_id ? wc_get_order($order_id) : null;
     
@@ -229,7 +255,7 @@ add_action('before_woocommerce_init', 'herepay_declare_compatibility');
  * Add Herepay Gateway to WooCommerce
  */
 function add_herepay_payment_gateway($methods) {
-    $methods[] = 'WC_Herepay_Payment_Gateway';
+    $methods[] = 'Herepay_WC_Payment_Gateway';
     return $methods;
 }
 add_filter('woocommerce_payment_gateways', 'add_herepay_payment_gateway');
