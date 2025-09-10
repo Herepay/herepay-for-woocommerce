@@ -30,7 +30,6 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.log('AJAX Error:', xhr.responseText);
                 var errorMsg = 'Connection test failed. Please try again.';
                 if (xhr.responseText) {
                     try {
@@ -82,11 +81,9 @@ jQuery(document).ready(function($) {
                 nonce: herepay_ajax.nonce
             },
             success: function(response) {
-                console.log('Transaction check response:', response);
                 
                 if (response.success) {
                     var data = response.data.data || response.data || {};
-                    console.log('Transaction data:', data);
                     
                     var statusHtml = '<div class="notice notice-info">';
                     statusHtml += '<h4>Transaction Status for: ' + paymentCode + '</h4>';

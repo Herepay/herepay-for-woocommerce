@@ -138,12 +138,4 @@ jQuery(document).ready(function($) {
         $('.herepay-error').show();
     });
     
-    // Utility function for debugging
-    window.herepay_debug = function() {
-        console.log('Herepay Payment Gateway Debug Info:');
-        console.log('Selected Payment Method:', $('input[name="payment_method"]:checked').val());
-        console.log('Selected Bank:', $('#herepay_bank_prefix').val());
-        console.log('Payment Method:', $('#herepay_payment_method').val());
-        console.log('Form Visible:', $('#herepay-payment-form').is(':visible'));
-    };
 });
