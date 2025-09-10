@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
+class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
     public $api_key;
     public $secret_key;
     public $private_key;
@@ -282,9 +282,8 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         
         echo '</div>';
 
-        // Add JavaScript for dynamic payment method selection
-        ?>
-        <script type="text/javascript">
+        // Add inline script for payment method selection
+        $inline_script = "
         jQuery(document).ready(function($) {
             $('#herepay_bank_prefix').change(function() {
                 var selectedOption = $(this).find('option:selected');
@@ -294,12 +293,12 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
                 // Add visual feedback
                 $('.herepay-selected-method').remove();
                 if (paymentMethod) {
-                    $(this).after('<div class="herepay-selected-method" style="margin-top: 5px; font-size: 12px; color: #666;">✓ Payment Method: ' + paymentMethod + '</div>');
+                    $(this).after('<div class=\"herepay-selected-method\" style=\"margin-top: 5px; font-size: 12px; color: #666;\">✓ Payment Method: ' + paymentMethod + '</div>');
                 }
             });
         });
-        </script>
-        <?php
+        ";
+        wp_add_inline_script('herepay-checkout', $inline_script);
     }
 
     /**
@@ -309,9 +308,10 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
     public function validate_fields() {
         // For checkout forms, we verify the checkout nonce if available
         // WooCommerce handles main security through its own nonce system
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce field check, sanitized below
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce field check, sanitized below
         if (isset($_POST['herepay_checkout_nonce_field'])) {
-            if (!wp_verify_nonce(wp_unslash($_POST['herepay_checkout_nonce_field']), 'herepay_checkout_nonce')) {
+            $nonce_field = sanitize_text_field(wp_unslash($_POST['herepay_checkout_nonce_field']));
+            if (!wp_verify_nonce($nonce_field, 'herepay_checkout_nonce')) {
                 wc_add_notice(__('Security verification failed. Please try again.', 'herepay-for-woocommerce'), 'error');
                 return false;
             }
@@ -348,10 +348,11 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         }
         
         // Try block checkout format - data might be in payment_data array
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- This is called within WooCommerce checkout context, array check only
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
         if (isset($_POST['payment_data']) && is_array($_POST['payment_data'])) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
-            $payment_data = wp_unslash($_POST['payment_data']);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.NonceVerification.Missing -- Sanitized below in loop after unslashing, called within WooCommerce checkout context
+            $raw_payment_data = $_POST['payment_data'];
+            $payment_data = array_map('wp_unslash', $raw_payment_data);
             foreach ($payment_data as $data) {
                 if (isset($data['key']) && $data['key'] === $key && !empty($data['value'])) {
                     return sanitize_text_field($data['value']);
@@ -618,7 +619,7 @@ class WC_Herepay_Payment_Gateway extends WC_Payment_Gateway {
         }
         
         // Get data from both GET and POST
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, GET and POST data sanitized individually below as needed
         $redirect_data = array_merge($_GET, $_POST);
         
         // Validate required fields
