@@ -19,7 +19,7 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
     /**
      * The gateway instance.
      *
-     * @var WC_Herepay_Payment_Gateway
+     * @var Herepay_WC_Payment_Gateway
      */
     private $gateway;
 
@@ -35,7 +35,7 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
      */
     public function initialize() {
         $this->settings = get_option('woocommerce_herepay_payment_gateway_settings', []);
-        $this->gateway = new WC_Herepay_Payment_Gateway();
+        $this->gateway = new Herepay_WC_Payment_Gateway();
     }
 
     /**

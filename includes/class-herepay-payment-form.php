@@ -13,7 +13,7 @@ class Herepay_Payment_Form {
     
     public static function handle_payment_form_request() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public payment form display, no state changes
-        if (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form') {
+        if (isset($_GET['herepay_payment']) && sanitize_text_field(wp_unslash($_GET['herepay_payment'])) === 'form') {
             self::display_payment_form();
             exit;
         }
@@ -21,8 +21,33 @@ class Herepay_Payment_Form {
     
     public static function enqueue_scripts() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking for payment form display, no state changes
-        if (is_checkout() || (isset($_GET['herepay_payment']) && $_GET['herepay_payment'] === 'form')) {
+        if (is_checkout() || (isset($_GET['herepay_payment']) && sanitize_text_field(wp_unslash($_GET['herepay_payment'])) === 'form')) {
             wp_enqueue_script('jquery');
+            
+            // Enqueue payment form styles
+            wp_enqueue_style(
+                'herepay-payment-form-style',
+                plugin_dir_url(dirname(__FILE__)) . 'assets/payment-form.css',
+                [],
+                HEREPAY_FOR_WOOCOMMERCE_VERSION
+            );
+            
+            // Enqueue payment form scripts
+            wp_enqueue_script(
+                'herepay-payment-form-script',
+                plugin_dir_url(dirname(__FILE__)) . 'assets/payment-form.js',
+                ['jquery'],
+                HEREPAY_FOR_WOOCOMMERCE_VERSION,
+                true
+            );
+            
+            // Add inline data for the script
+            $script_data = [
+                'form_action_url' => admin_url('admin-post.php'),
+                'auto_submit_delay' => 3000,
+                'debug_mode' => defined('WP_DEBUG') && WP_DEBUG
+            ];
+            wp_localize_script('herepay-payment-form-script', 'herepay_payment_form', $script_data);
         }
     }
     
@@ -47,7 +72,7 @@ class Herepay_Payment_Form {
         }
         
         $order = $orders[0];
-        $gateway = new WC_Herepay_Payment_Gateway();
+        $gateway = new Herepay_WC_Payment_Gateway();
         
         // Get payment data from order meta
         $bank_prefix = $order->get_meta('_herepay_bank_prefix');
@@ -72,6 +97,8 @@ class Herepay_Payment_Form {
         
         $api_url = $gateway->getEnvironment() . '/api/v1/herepay/initiate';
         
+        // Enqueue scripts in the head
+        self::enqueue_scripts();
         ?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
@@ -79,82 +106,7 @@ class Herepay_Payment_Form {
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title><?php esc_html_e('Processing Payment...', 'herepay-for-woocommerce'); ?></title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f1f1f1;
-                    margin: 0;
-                    padding: 20px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                }
-                .payment-container {
-                    background: white;
-                    padding: 40px;
-                    border-radius: 10px;
-                    box-shadow: 0 0 20px rgba(0,0,0,0.1);
-                    text-align: center;
-                    max-width: 500px;
-                    width: 100%;
-                }
-                .herepay-logo {
-                    max-height: 40px;
-                    margin-bottom: 20px;
-                }
-                .spinner {
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #030657;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    animation: spin 2s linear infinite;
-                    margin: 20px auto;
-                }
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-                .payment-info {
-                    margin: 20px 0;
-                    padding: 20px;
-                    background-color: #f8f9fa;
-                    border-radius: 5px;
-                    text-align: left;
-                }
-                .payment-info h3 {
-                    margin-top: 0;
-                    color: #333;
-                    text-align: center;
-                }
-                .payment-detail {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 10px 0;
-                    padding: 5px 0;
-                    border-bottom: 1px solid #eee;
-                }
-                .payment-detail:last-child {
-                    border-bottom: none;
-                    font-weight: bold;
-                    font-size: 1.1em;
-                }
-                .continue-btn {
-                    background: #030657;
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 16px;
-                    margin-top: 20px;
-                    transition: background-color 0.3s;
-                }
-                .continue-btn:hover {
-                    background: #020546;
-                }
-            </style>
+            <?php wp_head(); ?>
         </head>
         <body>
             <div class="payment-container">
@@ -192,44 +144,16 @@ class Herepay_Payment_Form {
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
                     <?php endforeach; ?>
                     <input type="hidden" name="order_id" value="<?php echo esc_attr($order->get_id()); ?>">
-                    
-                    <!-- Debug: Show form action URL -->
-                    <script>
-                        console.log('Form action URL:', '<?php echo esc_js(admin_url('admin-post.php')); ?>');
-                        console.log('Form data count:', <?php echo count($data); ?>);
-                    </script>
                 </form>
-                
-                <script>
-                    // Debug form submission
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const form = document.getElementById('herepay-payment-form');
-                        console.log('Form found:', form);
-                        console.log('Form action:', form.action);
-                        console.log('Form method:', form.method);
-                        console.log('Form elements count:', form.elements.length);
-                        
-                        // Log all form data
-                        for (let i = 0; i < form.elements.length; i++) {
-                            const element = form.elements[i];
-                            console.log('Form field:', element.name, '=', element.value);
-                        }
-                    });
-                    
-                    // Auto-submit the form after 3 seconds
-                    setTimeout(function() {
-                        console.log('Auto-submitting form...');
-                        document.getElementById('herepay-payment-form').submit();
-                    }, 3000);
-                </script>
                 
                 <p style="margin-top: 30px; font-size: 14px; color: #666;">
                     <?php esc_html_e('If you are not redirected automatically, please click the button below.', 'herepay-for-woocommerce'); ?>
                 </p>
-                <button type="button" onclick="document.getElementById('herepay-payment-form').submit();" class="continue-btn">
+                <button type="button" onclick="herepay_submit_payment_form();" class="continue-btn">
                     <?php esc_html_e('Continue to Payment', 'herepay-for-woocommerce'); ?>
                 </button>
             </div>
+            <?php wp_footer(); ?>
         </body>
         </html>
         <?php
