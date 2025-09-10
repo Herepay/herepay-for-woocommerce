@@ -38,7 +38,7 @@ class Herepay_Admin {
     }
     
     public static function admin_page() {
-        $gateway = new WC_Herepay_Payment_Gateway();
+        $gateway = new Herepay_WC_Payment_Gateway();
         $test_mode = $gateway->environment === 'sandbox';
         ?>
         <div class="wrap">
@@ -177,7 +177,7 @@ class Herepay_Admin {
         
         // Test API connection using gateway directly
         try {
-            $gateway = new WC_Herepay_Payment_Gateway();
+            $gateway = new Herepay_WC_Payment_Gateway();
             $channels = $gateway->getPaymentChannels();
             
             if ($channels && isset($channels['data'])) {
@@ -206,11 +206,12 @@ class Herepay_Admin {
             wp_die('Unauthorized');
         }
         
-        $payment_code = sanitize_text_field(wp_unslash($_POST['payment_code']));
-        
-        if (empty($payment_code)) {
+        if (!isset($_POST['payment_code']) || empty($_POST['payment_code'])) {
             wp_send_json_error(['message' => __('Payment code is required.', 'herepay-for-woocommerce')]);
+            return;
         }
+        
+        $payment_code = sanitize_text_field(wp_unslash($_POST['payment_code']));
         
         // Special test cases for provided payment codes
         if ($payment_code === 'HP-INVAPI-684679365E1E3') {
@@ -265,7 +266,7 @@ class Herepay_Admin {
             ]);
         }
         
-        $gateway = new WC_Herepay_Payment_Gateway();
+        $gateway = new Herepay_WC_Payment_Gateway();
         $result = $gateway->checkTransactionStatus($payment_code);
         
         if ($result) {
