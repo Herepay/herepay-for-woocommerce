@@ -340,6 +340,10 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      * Note: $_POST access is safe here as this is called within WooCommerce's secure checkout context
      */
     public function get_payment_post_data($key) {
+        // Validate the key parameter
+        if (empty($key) || !is_string($key)) {
+            return '';
+        }
         // First try classic checkout $_POST
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is called within WooCommerce checkout context
         if (isset($_POST[$key]) && !empty($_POST[$key])) {
@@ -444,22 +448,51 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External webhook, verified via checksum
         $raw_body = file_get_contents('php://input');
         
+        // Validate that we have input data
+        if (empty($raw_body)) {
+            wp_die('No callback data received', 'Herepay Callback', ['response' => 400]);
+        }
+        
         // Try to parse as JSON first
-        // Note: We use checksum verification for webhook security instead of traditional sanitization
-        // as this is external webhook data that needs to be verified via HMAC checksum
         $callback_data = json_decode($raw_body, true);
         
         // If JSON parsing failed, try to parse as form data
         if (json_last_error() !== JSON_ERROR_NONE || !$callback_data) {
-            parse_str($raw_body, $callback_data);
+            parse_str($raw_body, $parsed_data);
+            $callback_data = $parsed_data;
         }
 
+        // Validate that we have valid data
+        if (!$callback_data || !is_array($callback_data)) {
+            wp_die('Invalid callback data format', 'Herepay Callback', ['response' => 400]);
+        }
+
+        // Extract and sanitize only the required fields
+        $required_fields = ['payment_code'];
+        $optional_fields = ['status', 'status_code', 'transaction_id', 'amount', 'message', 'checksum'];
+        
+        $sanitized_data = [];
+        
         // Validate required fields
-        if (!$callback_data || !isset($callback_data['payment_code'])) {
-            wp_die('Invalid callback data - missing payment_code', 'Herepay Callback', ['response' => 400]);
+        foreach ($required_fields as $field) {
+            if (!isset($callback_data[$field]) || empty($callback_data[$field])) {
+                wp_die('Invalid callback data - missing ' . esc_html($field), 'Herepay Callback', ['response' => 400]);
+            }
+            $sanitized_data[$field] = sanitize_text_field(wp_unslash($callback_data[$field]));
+        }
+        
+        // Sanitize optional fields
+        foreach ($optional_fields as $field) {
+            if (isset($callback_data[$field])) {
+                if ($field === 'amount') {
+                    $sanitized_data[$field] = floatval($callback_data[$field]);
+                } else {
+                    $sanitized_data[$field] = sanitize_text_field(wp_unslash($callback_data[$field]));
+                }
+            }
         }
 
-        $payment_code = sanitize_text_field(wp_unslash($callback_data['payment_code']));
+        $payment_code = $sanitized_data['payment_code'];
         
         // Find order by payment code - HPOS compatible
         $orders = wc_get_orders([
@@ -476,11 +509,11 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         $order = $orders[0];
         
         // Verify callback authenticity using checksum if available
-        if (isset($callback_data['checksum']) && !empty($this->private_key)) {
-            $received_checksum = $callback_data['checksum'];
+        if (isset($sanitized_data['checksum']) && !empty($this->private_key)) {
+            $received_checksum = $sanitized_data['checksum'];
             
             // Create data array without checksum for verification
-            $verify_data = $callback_data;
+            $verify_data = $sanitized_data;
             unset($verify_data['checksum']);
             
             // Generate checksum to verify
@@ -492,12 +525,12 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             }
         }
         
-        // Get payment status from callback
-        $payment_status = isset($callback_data['status']) ? sanitize_text_field(wp_unslash($callback_data['status'])) : '';
-        $status_code = isset($callback_data['status_code']) ? sanitize_text_field(wp_unslash($callback_data['status_code'])) : '';
-        $transaction_id = isset($callback_data['transaction_id']) ? sanitize_text_field(wp_unslash($callback_data['transaction_id'])) : '';
-        $amount = isset($callback_data['amount']) ? floatval($callback_data['amount']) : 0;
-        $message = isset($callback_data['message']) ? sanitize_text_field(wp_unslash($callback_data['message'])) : '';
+        // Get payment status from sanitized callback data
+        $payment_status = isset($sanitized_data['status']) ? $sanitized_data['status'] : '';
+        $status_code = isset($sanitized_data['status_code']) ? $sanitized_data['status_code'] : '';
+        $transaction_id = isset($sanitized_data['transaction_id']) ? $sanitized_data['transaction_id'] : '';
+        $amount = isset($sanitized_data['amount']) ? $sanitized_data['amount'] : 0;
+        $message = isset($sanitized_data['message']) ? $sanitized_data['message'] : '';
         
         // Handle both status and status_code for comprehensive coverage
         $is_success = (
@@ -618,19 +651,60 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             return;
         }
         
-        // Get data from both GET and POST
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, GET and POST data sanitized individually below as needed
-        $redirect_data = array_merge($_GET, $_POST);
+        // Extract and sanitize only the required fields from GET and POST
+        $required_fields = ['payment_code'];
+        $optional_fields = ['status', 'status_code', 'transaction_id', 'amount', 'message', 'checksum'];
         
-        // Validate required fields
-        if (!isset($redirect_data['payment_code']) || empty($redirect_data['payment_code'])) {
-            // Redirect to cart with error if no payment code
-            wc_add_notice(__('Invalid payment data received.', 'herepay-for-woocommerce'), 'error');
-            wp_redirect(wc_get_cart_url());
-            exit;
+        $sanitized_data = [];
+        
+        // Check for required fields in both GET and POST
+        foreach ($required_fields as $field) {
+            $value = null;
+            
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- External redirect from payment gateway, verified via checksum
+            if (isset($_GET[$field]) && !empty($_GET[$field])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- External redirect from payment gateway, verified via checksum
+                $value = sanitize_text_field(wp_unslash($_GET[$field]));
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway, verified via checksum
+            } elseif (isset($_POST[$field]) && !empty($_POST[$field])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway, verified via checksum
+                $value = sanitize_text_field(wp_unslash($_POST[$field]));
+            }
+            
+            if (empty($value)) {
+                // Redirect to cart with error if required field is missing
+                wc_add_notice(__('Invalid payment data received.', 'herepay-for-woocommerce'), 'error');
+                wp_redirect(wc_get_cart_url());
+                exit;
+            }
+            
+            $sanitized_data[$field] = $value;
         }
         
-        $payment_code = sanitize_text_field(wp_unslash($redirect_data['payment_code']));
+        // Check for optional fields in both GET and POST
+        foreach ($optional_fields as $field) {
+            $value = null;
+            
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- External redirect from payment gateway, verified via checksum
+            if (isset($_GET[$field]) && !empty($_GET[$field])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- External redirect from payment gateway, verified via checksum
+                $raw_value = wp_unslash($_GET[$field]);
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway, verified via checksum
+            } elseif (isset($_POST[$field]) && !empty($_POST[$field])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External redirect from payment gateway, verified via checksum
+                $raw_value = wp_unslash($_POST[$field]);
+            } else {
+                continue; // Skip if field not found
+            }
+            
+            if ($field === 'amount') {
+                $sanitized_data[$field] = floatval($raw_value);
+            } else {
+                $sanitized_data[$field] = sanitize_text_field($raw_value);
+            }
+        }
+        
+        $payment_code = $sanitized_data['payment_code'];
         
         // Find order by payment code
         $orders = wc_get_orders([
@@ -649,19 +723,19 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         
         $order = $orders[0];
         
-        // Get payment status from redirect data
-        $payment_status = isset($redirect_data['status']) ? sanitize_text_field(wp_unslash($redirect_data['status'])) : '';
-        $status_code = isset($redirect_data['status_code']) ? sanitize_text_field(wp_unslash($redirect_data['status_code'])) : '';
-        $transaction_id = isset($redirect_data['transaction_id']) ? sanitize_text_field(wp_unslash($redirect_data['transaction_id'])) : '';
-        $amount = isset($redirect_data['amount']) ? floatval($redirect_data['amount']) : 0;
-        $message = isset($redirect_data['message']) ? sanitize_text_field(wp_unslash($redirect_data['message'])) : '';
+        // Get payment status from sanitized redirect data
+        $payment_status = isset($sanitized_data['status']) ? $sanitized_data['status'] : '';
+        $status_code = isset($sanitized_data['status_code']) ? $sanitized_data['status_code'] : '';
+        $transaction_id = isset($sanitized_data['transaction_id']) ? $sanitized_data['transaction_id'] : '';
+        $amount = isset($sanitized_data['amount']) ? $sanitized_data['amount'] : 0;
+        $message = isset($sanitized_data['message']) ? $sanitized_data['message'] : '';
         
         // Verify checksum if available and private key is set
-        if (isset($redirect_data['checksum']) && !empty($this->private_key)) {
-            $received_checksum = $redirect_data['checksum'];
+        if (isset($sanitized_data['checksum']) && !empty($this->private_key)) {
+            $received_checksum = $sanitized_data['checksum'];
             
             // Create data array without checksum for verification
-            $verify_data = $redirect_data;
+            $verify_data = $sanitized_data;
             unset($verify_data['checksum']);
             
             // Generate checksum to verify
