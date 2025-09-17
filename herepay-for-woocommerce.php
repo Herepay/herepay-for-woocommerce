@@ -211,8 +211,10 @@ function herepay_handle_payment_processing() {
     
     unset($form_data['checksum']);
     
-    // Use the same checksum generation method as the gateway class
-    $checksum = herepay_generate_checksum($form_data, $private_key);
+    // Use simple checksum generation (matching Herepay's expected format)
+    ksort($form_data);
+    $concatenated_data = implode(',', $form_data);
+    $checksum = hash_hmac('sha256', $concatenated_data, $private_key);
     $form_data['checksum'] = $checksum;
 
     $headers = [
@@ -239,24 +241,14 @@ function herepay_handle_payment_processing() {
 }
 
 /**
- * Generate checksum for Herepay API (matching the main gateway class implementation)
+ * Generate checksum for Herepay API (simple concatenation method)
  */
 function herepay_generate_checksum($data, $privateKey) {
     // Sort the data keys
     ksort($data);
     
-    // Convert arrays/objects to JSON strings
-    $processedData = [];
-    foreach ($data as $key => $value) {
-        if (is_array($value) || is_object($value)) {
-            $processedData[$key] = json_encode($value);
-        } else {
-            $processedData[$key] = $value;
-        }
-    }
-    
-    // Concatenate all values with commas (matching Node.js implementation)
-    $concatenatedData = implode(',', array_values($processedData));
+    // Simple concatenation (matching Herepay's expected format)
+    $concatenatedData = implode(',', $data);
     
     // Generate HMAC-SHA256
     return hash_hmac('sha256', $concatenatedData, $privateKey);

@@ -144,24 +144,14 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
     }
 
     /**
-     * Generate checksum for Herepay API (matching Node.js implementation)
+     * Generate checksum for Herepay API (simple concatenation method)
      */
     public function generateChecksum($data, $privateKey) {
         // Sort the data keys
         ksort($data);
         
-        // Convert arrays/objects to JSON strings
-        $processedData = [];
-        foreach ($data as $key => $value) {
-            if (is_array($value) || is_object($value)) {
-                $processedData[$key] = json_encode($value);
-            } else {
-                $processedData[$key] = $value;
-            }
-        }
-        
-        // Concatenate all values with commas (matching Node.js implementation)
-        $concatenatedData = implode(',', array_values($processedData));
+        // Simple concatenation (matching Herepay's expected format)
+        $concatenatedData = implode(',', $data);
         
         // Generate HMAC-SHA256
         return hash_hmac('sha256', $concatenatedData, $privateKey);
