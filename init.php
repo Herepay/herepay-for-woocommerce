@@ -442,12 +442,26 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
     public function handle_callback() {
         // Get raw POST data
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External webhook, verified via checksum
-        $raw_body = file_get_contents('php://input');
+        $raw_body = $_POST;
         
-        // Try to parse as JSON first
         // Note: We use checksum verification for webhook security instead of traditional sanitization
         // as this is external webhook data that needs to be verified via HMAC checksum
-        $callback_data = json_decode($raw_body, true);
+        $callback_data = array();
+
+        if ( is_array( $raw_body ) ) {
+            $callback_data['checksum']        = sanitize_text_field( $raw_body['checksum'] ?? '' );
+            $callback_data['status']          = sanitize_text_field( $raw_body['status'] ?? '' );
+            $callback_data['status_code']     = sanitize_text_field( $raw_body['status_code'] ?? '' );
+            $callback_data['amount']          = sanitize_text_field( $raw_body['amount'] ?? 0 );
+            $callback_data['reference_code']  = sanitize_text_field( $raw_body['reference_code'] ?? '' );
+            $callback_data['payment_code']    = sanitize_text_field( $raw_body['payment_code'] ?? '' );
+            $callback_data['bank_name']       = sanitize_text_field( $raw_body['bank_name'] ?? '' );
+            $callback_data['transaction_id']  = sanitize_text_field( $raw_body['transaction_id'] ?? '' );
+            $callback_data['fpx_type']        = sanitize_text_field( $raw_body['fpx_type'] ?? '' );
+            $callback_data['message']         = sanitize_text_field( $raw_body['message'] ?? '' );
+            $callback_data['currency']        = sanitize_text_field( $raw_body['currency'] ?? '' );
+            $callback_data['payment_method']  = sanitize_text_field( $raw_body['payment_method'] ?? '' );
+        }
         
         // If JSON parsing failed, try to parse as form data
         if (json_last_error() !== JSON_ERROR_NONE || !$callback_data) {
@@ -618,10 +632,22 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             return;
         }
         
-        // Get data from both GET and POST
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, GET and POST data sanitized individually below as needed
-        $redirect_data = array_merge($_GET, $_POST);
-        
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, POST data sanitized individually below as needed
+        $redirect_data = array(
+            'checksum'        => sanitize_text_field( $_POST['checksum'] ?? '' ),
+            'status'          => sanitize_text_field( $_POST['status'] ?? '' ),
+            'status_code'     => sanitize_text_field( $_POST['status_code'] ?? '' ),
+            'amount'          => sanitize_text_field( $_POST['amount'] ?? 0 ),
+            'reference_code'  => sanitize_text_field( $_POST['reference_code'] ?? '' ),
+            'payment_code'    => sanitize_text_field( $_POST['payment_code'] ?? '' ),
+            'bank_name'       => sanitize_text_field( $_POST['bank_name'] ?? '' ),
+            'transaction_id'  => sanitize_text_field( $_POST['transaction_id'] ?? '' ),
+            'fpx_type'        => sanitize_text_field( $_POST['fpx_type'] ?? '' ),
+            'message'         => sanitize_text_field( $_POST['message'] ?? '' ),
+            'currency'        => sanitize_text_field( $_POST['currency'] ?? '' ),
+            'payment_method'  => sanitize_text_field( $_POST['payment_method'] ?? '' ),
+        );        
+
         // Validate required fields
         if (!isset($redirect_data['payment_code']) || empty($redirect_data['payment_code'])) {
             // Redirect to cart with error if no payment code
