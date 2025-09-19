@@ -2,6 +2,19 @@
 
 All notable changes to the Herepay Payment Gateway for WooCommerce will be documented in this file.
 
+## [1.0.1] - 2025-09-19
+
+### Enhanced
+- **Security**: Enhanced input validation and sanitization in payment processing
+- **Data Security**: Improved sanitization of all form inputs including payment data, customer information, and transaction details
+- **Input Validation**: Strengthened validation for required payment fields before processing
+- **Code Quality**: Enhanced security practices in payment handling workflow
+
+### Fixed
+- Improved data sanitization for payment form submissions
+- Enhanced validation of payment processing parameters
+- Strengthened security checks for payment data handling
+
 ## [1.0.0] - 2025-08-30
 
 ### Added

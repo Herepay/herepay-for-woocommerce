@@ -4,7 +4,7 @@ Tags: payment, gateway, woocommerce, herepay, malaysia
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,12 @@ First, check the troubleshooting section in the plugin documentation. If issues 
 
 == Changelog ==
 
+= 1.0.1 =
+* Enhanced input validation and sanitization in payment processing
+* Improved data security for payment form submissions
+* Strengthened validation of payment processing parameters
+* Enhanced security practices in payment handling workflow
+
 = 1.0.0 =
 * Initial release
 * Complete Herepay API integration
@@ -183,6 +189,9 @@ First, check the troubleshooting section in the plugin documentation. If issues 
 * WooCommerce 9.6.0 compatibility
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Enhanced security with improved input validation and sanitization in payment processing. Recommended update for all users.
 
 = 1.0.0 =
 Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
