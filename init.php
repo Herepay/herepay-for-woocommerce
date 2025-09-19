@@ -441,7 +441,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      */
     public function handle_callback() {
         // Get raw POST data
-        $raw_body = wp_verify_nonce($_POST, 'herepay_callback');
+        $raw_body = $_POST;
         
         // Note: We use checksum verification for webhook security instead of traditional sanitization
         // as this is external webhook data that needs to be verified via HMAC checksum
@@ -633,18 +633,18 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
 
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, POST data sanitized individually below as needed
         $redirect_data = array(
-            'checksum'        => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['checksum'] ?? '' ) ), 'herepay_redirect'),
-            'status'          => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['status'] ?? '' ) ), 'herepay_redirect'),
-            'status_code'     => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['status_code'] ?? '' ) ), 'herepay_redirect'),
-            'amount'          => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['amount'] ?? 0 ) ), 'herepay_redirect'),
-            'reference_code'  => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['reference_code'] ?? '' ) ), 'herepay_redirect'),
-            'payment_code'    => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['payment_code'] ?? '' ) ), 'herepay_redirect'),
-            'bank_name'       => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['bank_name'] ?? '' ) ), 'herepay_redirect'),
-            'transaction_id'  => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['transaction_id'] ?? '' ) ), 'herepay_redirect'),
-            'fpx_type'        => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['fpx_type'] ?? '' ) ), 'herepay_redirect'),
-            'message'         => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['message'] ?? '' ) ), 'herepay_redirect'),
-            'currency'        => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['currency'] ?? '' ) ), 'herepay_redirect'),
-            'payment_method'  => wp_verify_nonce(sanitize_text_field( wp_unslash($_POST['payment_method'] ?? '' ) ), 'herepay_redirect'),
+            'checksum'        => sanitize_text_field( wp_unslash($_POST['checksum'] ?? '' ) ),
+            'status'          => sanitize_text_field( wp_unslash($_POST['status'] ?? '' ) ),
+            'status_code'     => sanitize_text_field( wp_unslash($_POST['status_code'] ?? '' ) ),
+            'amount'          => sanitize_text_field( wp_unslash($_POST['amount'] ?? 0 ) ),
+            'reference_code'  => sanitize_text_field( wp_unslash($_POST['reference_code'] ?? '' ) ),
+            'payment_code'    => sanitize_text_field( wp_unslash($_POST['payment_code'] ?? '' ) ),
+            'bank_name'       => sanitize_text_field( wp_unslash($_POST['bank_name'] ?? '' ) ),
+            'transaction_id'  => sanitize_text_field( wp_unslash($_POST['transaction_id'] ?? '' ) ),
+            'fpx_type'        => sanitize_text_field( wp_unslash($_POST['fpx_type'] ?? '' ) ),
+            'message'         => sanitize_text_field( wp_unslash($_POST['message'] ?? '' ) ),
+            'currency'        => sanitize_text_field( wp_unslash($_POST['currency'] ?? '' ) ),
+            'payment_method'  => sanitize_text_field( wp_unslash($_POST['payment_method'] ?? '' ) ),
         );
         
         var_dump($redirect_data);
