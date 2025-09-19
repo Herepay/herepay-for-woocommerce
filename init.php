@@ -648,7 +648,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             'payment_method'  => sanitize_text_field( wp_unslash($_POST['payment_method'] ?? '' ) ),
         );
         
-        var_dump('redirect_data', $redirect_data);
+        var_dump($redirect_data);
         die();
 
         // Validate required fields
