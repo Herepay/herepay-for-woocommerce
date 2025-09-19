@@ -441,8 +441,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      */
     public function handle_callback() {
         // Get raw POST data
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- External webhook, verified via checksum
-        $raw_body = $_POST;
+        $raw_body = wp_verify_nonce($_POST, 'herepay_callback');
         
         // Note: We use checksum verification for webhook security instead of traditional sanitization
         // as this is external webhook data that needs to be verified via HMAC checksum
@@ -633,7 +632,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         }
         
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, POST data sanitized individually below as needed
-        $redirect_data = array(
+        $redirect_data = wp_verify_nonce(array(
             'checksum'        => sanitize_text_field( wp_unslash($_POST['checksum'] ?? '' ) ),
             'status'          => sanitize_text_field( wp_unslash($_POST['status'] ?? '' ) ),
             'status_code'     => sanitize_text_field( wp_unslash($_POST['status_code'] ?? '' ) ),
@@ -646,7 +645,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             'message'         => sanitize_text_field( wp_unslash($_POST['message'] ?? '' ) ),
             'currency'        => sanitize_text_field( wp_unslash($_POST['currency'] ?? '' ) ),
             'payment_method'  => sanitize_text_field( wp_unslash($_POST['payment_method'] ?? '' ) ),
-        );        
+        ), 'herepay_redirect');        
 
         // Validate required fields
         if (!isset($redirect_data['payment_code']) || empty($redirect_data['payment_code'])) {
