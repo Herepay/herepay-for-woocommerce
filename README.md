@@ -238,6 +238,9 @@ Logs will be saved to `/wp-content/debug.log`
 - Multi-language support ready
 - Mobile-responsive design
 
+### Version 1.0.1
+- Enhance input validation and sanization in processing 
+
 ## License
 
 This plugin is licensed under the GPL v2 or later.

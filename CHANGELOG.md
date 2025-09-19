@@ -26,6 +26,11 @@ All notable changes to the Herepay Payment Gateway for WooCommerce will be docum
 - Frontend JavaScript for smooth checkout process
 - Detailed documentation and setup instructions
 
+## [1.0.1] - 2025-09-19
+
+### Added
+- Enhance input validation and sanization in processing 
+
 ### Features
 - **Payment Processing**: Seamless integration with Herepay payment API
 - **Bank Selection**: Dynamic loading of available payment channels

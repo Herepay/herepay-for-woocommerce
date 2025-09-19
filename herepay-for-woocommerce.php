@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.0');
+define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.1');
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 

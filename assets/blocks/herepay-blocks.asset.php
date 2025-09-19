@@ -10,5 +10,5 @@ return array(
         'wp-html-entities',
         'wp-components'
     ),
-    'version' => '1.0.0'
+    'version' => '1.0.1'
 );
