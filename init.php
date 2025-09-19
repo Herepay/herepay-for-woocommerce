@@ -631,7 +631,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             return;
         }
 
-        dump($_POST);
+        var_dump($_POST);
         die();
         
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, POST data sanitized individually below as needed
