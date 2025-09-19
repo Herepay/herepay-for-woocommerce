@@ -230,6 +230,9 @@ Logs will be saved to `/wp-content/debug.log`
 
 ## Changelog
 
+### Version 1.0.1
+- Enhance input validation and sanization in processing 
+
 ### Version 1.0.0
 - Initial release
 - Complete Herepay API integration
@@ -237,9 +240,6 @@ Logs will be saved to `/wp-content/debug.log`
 - Webhook support for payment notifications
 - Multi-language support ready
 - Mobile-responsive design
-
-### Version 1.0.1
-- Enhance input validation and sanization in processing 
 
 ## License
 

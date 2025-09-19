@@ -2,6 +2,11 @@
 
 All notable changes to the Herepay Payment Gateway for WooCommerce will be documented in this file.
 
+## [1.0.1] - 2025-09-19
+
+### Added
+- Enhance input validation and sanization in processing 
+
 ## [1.0.0] - 2025-08-30
 
 ### Added
@@ -25,11 +30,6 @@ All notable changes to the Herepay Payment Gateway for WooCommerce will be docum
 - Admin CSS and JavaScript for enhanced user experience
 - Frontend JavaScript for smooth checkout process
 - Detailed documentation and setup instructions
-
-## [1.0.1] - 2025-09-19
-
-### Added
-- Enhance input validation and sanization in processing 
 
 ### Features
 - **Payment Processing**: Seamless integration with Herepay payment API

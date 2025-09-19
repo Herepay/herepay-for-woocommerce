@@ -167,6 +167,9 @@ First, check the troubleshooting section in the plugin documentation. If issues 
 
 == Changelog ==
 
+= 1.0.1 = 
+* Enhance input validation and sanization in processing 
+
 = 1.0.0 =
 * Initial release
 * Complete Herepay API integration
@@ -182,16 +185,13 @@ First, check the troubleshooting section in the plugin documentation. If issues 
 * WordPress 6.7.1 compatibility
 * WooCommerce 9.6.0 compatibility
 
-= 1.0.1 = 
-* Enhance input validation and sanization in processing 
-
 == Upgrade Notice ==
-
-= 1.0.0 =
-Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
 
 = 1.0.1 =
 Enhance input validation and sanization in processing
+
+= 1.0.0 =
+Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
 
 == Requirements ==
 
