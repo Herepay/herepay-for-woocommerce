@@ -630,7 +630,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         if (!get_query_var('herepay_redirect')) {
             return;
         }
-        var_dump($_POST);
+
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- External redirect from payment gateway, verified via checksum, POST data sanitized individually below as needed
         $redirect_data = wp_verify_nonce($_POST, 'herepay_redirect');
         $redirect_data = array(
@@ -648,7 +648,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
             'payment_method'  => sanitize_text_field( wp_unslash($_POST['payment_method'] ?? '' ) ),
         );
         
-        var_dump($redirect_data);
+        var_dump('redirect_data', $redirect_data);
         die();
 
         // Validate required fields
