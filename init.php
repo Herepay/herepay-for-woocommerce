@@ -350,7 +350,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         if (isset($_POST['payment_data']) && is_array($_POST['payment_data'])) {
             // Sanitize array structure immediately
             $sanitized_data = array();
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Sanitized in loop below
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.NonceVerification.Missing -- Sanitized in loop below, called within WooCommerce checkout context
             foreach ($_POST['payment_data'] as $item) {
                 if (is_array($item)) {
                     $sanitized_data[] = array(
