@@ -340,31 +340,18 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      * Note: $_POST access is safe here as this is called within WooCommerce's secure checkout context
      */
     public function get_payment_post_data($key) {
+        var_dump($_POST, $key);
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Called within WooCommerce checkout context
         if (isset($_POST[$key]) && !empty($_POST[$key])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Missing
             return sanitize_text_field(wp_unslash($_POST[$key]));
         }
         
+        // Access payment_data directly by index instead of looping
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Called within WooCommerce checkout context
-        if (isset($_POST['payment_data']) && is_array($_POST['payment_data'])) {
-            // Sanitize array structure immediately
-            $sanitized_data = array();
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.NonceVerification.Missing -- Sanitized in loop below, called within WooCommerce checkout context
-            foreach ($_POST['payment_data'] as $item) {
-                if (is_array($item)) {
-                    $sanitized_data[] = array(
-                        'key' => isset($item['key']) ? sanitize_text_field(wp_unslash($item['key'])) : '',
-                        'value' => isset($item['value']) ? sanitize_text_field(wp_unslash($item['value'])) : '',
-                    );
-                }
-            }
-            
-            foreach ($sanitized_data as $data) {
-                if ($data['key'] === $key && !empty($data['value'])) {
-                    return $data['value'];
-                }
-            }
+        if (isset($_POST['payment_data'][$key]) && !empty($_POST['payment_data'][$key])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return sanitize_text_field(wp_unslash($_POST['payment_data'][$key]));
         }
         
         // phpcs:ignore WordPress.Security.NonceVerification.Missing
