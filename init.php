@@ -340,7 +340,6 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      * Note: $_POST access is safe here as this is called within WooCommerce's secure checkout context
      */
     public function get_payment_post_data($key) {
-        var_dump($_POST, $key);
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Called within WooCommerce checkout context
         if (isset($_POST[$key]) && !empty($_POST[$key])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Missing
