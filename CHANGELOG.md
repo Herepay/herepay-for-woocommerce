@@ -2,6 +2,12 @@
 
 All notable changes to the Herepay Payment Gateway for WooCommerce will be documented in this file.
 
+## [1.0.2] - 2026-01-31
+
+### Added
+- Added new assets.
+- Added image to README for Herepay Payment Gateway.
+
 ## [1.0.1] - 2025-09-19
 
 ### Enhanced

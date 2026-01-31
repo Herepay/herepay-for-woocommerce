@@ -232,6 +232,14 @@ Logs will be saved to `/wp-content/debug.log`
 
 ## Changelog
 
+### Version 1.0.2
+- Added new assets.
+- Added image to README for Herepay Payment Gateway.
+
+### Version 1.0.1
+- Enhanced security with improved input validation and sanitization in payment processing
+- Improved data security for payment form submissions
+
 ### Version 1.0.0
 - Initial release
 - Complete Herepay API integration
