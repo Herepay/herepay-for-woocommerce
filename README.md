@@ -232,6 +232,9 @@ Logs will be saved to `/wp-content/debug.log`
 
 ## Changelog
 
+### Version 1.0.3
+- Update URL Production.
+
 ### Version 1.0.2
 - Added new assets.
 - Added image to README for Herepay Payment Gateway.

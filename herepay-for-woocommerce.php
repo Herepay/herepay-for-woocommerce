@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Herepay Payment Gateway for WooCommerce
  * Description: Herepay Payment Gateway for WooCommerce - Accept secure online payments through Herepay.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Herepay
  * Author URI: https://herepay.org
  * Text Domain: herepay-for-woocommerce
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.2');
+define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.3');
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
@@ -208,6 +208,8 @@ function herepay_handle_payment_processing()
     $api_key = isset($gateway_options['api_key']) ? $gateway_options['api_key'] : '';
     $secret_key = isset($gateway_options['secret_key']) ? $gateway_options['secret_key'] : '';
     $private_key = isset($gateway_options['private_key']) ? $gateway_options['private_key'] : '';
+    $environment = isset($gateway_options['environment']) ? $gateway_options['environment'] : 'sandbox';
+    $base_url = ($environment === 'production') ? 'https://app.herepay.org' : 'https://uat.herepay.org';
 
     if (empty($api_key) || empty($secret_key) || empty($private_key)) {
         wp_die('Herepay credentials not configured. Please configure API Key, Secret Key, and Private Key in WooCommerce > Settings > Payments > Herepay.');
@@ -226,7 +228,7 @@ function herepay_handle_payment_processing()
         'Content-Type' => 'application/x-www-form-urlencoded'
     ];
 
-    $response = wp_remote_post('https://uat.herepay.org/api/v1/herepay/initiate', [
+    $response = wp_remote_post($base_url . '/api/v1/herepay/initiate', [
         'method' => 'POST',
         'headers' => $headers,
         'body' => http_build_query($form_data),
