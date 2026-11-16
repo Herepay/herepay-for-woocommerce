@@ -1,0 +1,12 @@
+# Nota dev, bukan sebahagian plugin
+BLOCKS_INTEGRATION_COMPLETE.md
+INTEGRATION_COMPLETE.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
