@@ -91,7 +91,8 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
                 'title' => __('Redirect URL', 'herepay-for-woocommerce'),
                 'type' => 'text',
                 // translators: %s is the redirect URL
-                'description' => sprintf(__('URL to redirect customers after payment completion. Use: %s', 'herepay-for-woocommerce'), home_url('/herepay-redirect')),
+                'description' => sprintf(__('URL to redirect customers after payment completion. Use: %s', 'herepay-for-woocommerce'), home_url('/herepay-redirect'))
+                    . $this->get_live_server_note(),
                 'default' => home_url('/herepay-redirect'),
                 'custom_attributes' => ['readonly' => 'readonly']
             ],
@@ -99,11 +100,50 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
                 'title' => __('Callback URL', 'herepay-for-woocommerce'),
                 'type' => 'text',
                 // translators: %s is the callback URL
-                'description' => sprintf(__('Webhook URL for payment notifications. Use: %s', 'herepay-for-woocommerce'), home_url('/wc-api/wc_herepay_payment_gateway')),
+                'description' => sprintf(__('Webhook URL for payment notifications. Use: %s', 'herepay-for-woocommerce'), home_url('/wc-api/wc_herepay_payment_gateway'))
+                    . $this->get_live_server_note(),
                 'default' => home_url('/wc-api/wc_herepay_payment_gateway'),
                 'custom_attributes' => ['readonly' => 'readonly']
             ]
         ];
+    }
+
+    /**
+     * True when the store runs on a local/private address Herepay cannot reach
+     * (localhost, 127.x, 10.x, 192.168.x, 172.16-31.x, *.local, *.test, *.localhost ...).
+     */
+    public static function is_local_site() {
+        $host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+        if ($host === '' || $host === 'localhost' || $host === '::1' || $host === '[::1]') {
+            return true;
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return !filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        }
+        return (bool) preg_match('/\.(localhost|local|test|example|invalid|lan|internal|home\.arpa)$/', $host);
+    }
+
+    /**
+     * Note under the Redirect/Callback URL fields: Herepay must reach these URLs over the internet.
+     */
+    private function get_live_server_note() {
+        $note = '<br><em>' . esc_html__('Note: this URL must be on a live server with HTTPS (https://) that is reachable from the internet. Herepay cannot send redirects or callbacks to a local server (localhost, 127.0.0.1, 192.168.x.x, .local, .test).', 'herepay-for-woocommerce') . '</em>';
+
+        if (strtolower((string) wp_parse_url(home_url(), PHP_URL_SCHEME)) !== 'https') {
+            $note .= '<br><span style="display:inline-block;margin-top:6px;padding:6px 10px;background:#fcf0f1;border-left:4px solid #d63638;color:#8a2424;">'
+                . '<strong>' . esc_html__('This URL does not use HTTPS.', 'herepay-for-woocommerce') . '</strong> '
+                . esc_html__('Herepay rejects payments whose redirect URL does not start with https://. Install an SSL certificate and set the WordPress Address and Site Address to https://.', 'herepay-for-woocommerce')
+                . '</span>';
+        }
+
+        if (self::is_local_site()) {
+            $note .= '<br><span style="display:inline-block;margin-top:6px;padding:6px 10px;background:#fcf0f1;border-left:4px solid #d63638;color:#8a2424;">'
+                . '<strong>' . esc_html__('This store is running on a local address.', 'herepay-for-woocommerce') . '</strong> '
+                . esc_html__('Herepay will not be able to reach this URL, so orders will not be updated automatically after payment. Test the full payment flow on a live server (or expose this site with a public tunnel URL).', 'herepay-for-woocommerce')
+                . '</span>';
+        }
+
+        return $note;
     }
 
     /**
@@ -128,7 +168,9 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
      * Admin Panel Options
      */
     public function admin_options() {
-        echo '<h3>' . esc_html__('Herepay Payment Gateway', 'herepay-for-woocommerce') . '</h3>';
+        echo '<div style="display:flex;align-items:center;gap:14px;margin:12px 0 4px;">'
+            . '<img src="' . esc_url($this->icon) . '" alt="Herepay" style="height:28px;width:auto;display:block;">'
+            . '<h3 style="margin:0;">' . esc_html__('Payment Gateway', 'herepay-for-woocommerce') . '</h3></div>';
         echo '<p>' . esc_html__('Configure your Herepay payment gateway settings below.', 'herepay-for-woocommerce') . '</p>';
         echo '<table class="form-table">';
         $this->generate_settings_html();
@@ -220,85 +262,163 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
     }
 
     /**
-     * Display payment form on checkout
+     * Logo shown next to the payment method radio (classic checkout).
+     */
+    public function get_icon() {
+        $icon = '<img src="' . esc_url($this->icon) . '" alt="Herepay" class="hp-method-logo" width="88" height="22" />';
+        return apply_filters('woocommerce_gateway_icon', $icon, $this->id);
+    }
+
+    /**
+     * Subtitle shown under each payment method group.
+     */
+    public static function get_method_subtitle($payment_method) {
+        $key = strtolower(trim((string) $payment_method));
+        if ($key === 'online banking') {
+            return __('Personal bank accounts', 'herepay-for-woocommerce');
+        }
+        if ($key === 'corporate banking') {
+            return __('Business bank accounts', 'herepay-for-woocommerce');
+        }
+        return '';
+    }
+
+    /**
+     * Active banks grouped by payment method (Online Banking, Corporate Banking, ...).
+     * Shared by the classic and block checkout.
+     *
+     * @return array|false False when the API call fails, [] when no bank is active.
+     */
+    public function get_bank_groups() {
+        if (empty($this->api_key) || empty($this->secret_key)) {
+            return false;
+        }
+
+        $channels = $this->getPaymentChannelsWithCredentials($this->api_key, $this->secret_key);
+        if (!$channels || empty($channels['data']) || !is_array($channels['data'])) {
+            return false;
+        }
+
+        $groups = [];
+        foreach ($channels['data'] as $method_group) {
+            if (empty($method_group['channels']) || !is_array($method_group['channels'])) {
+                continue;
+            }
+            $payment_method = !empty($method_group['payment_method']) ? $method_group['payment_method'] : 'Online Banking';
+
+            $banks = [];
+            foreach ($method_group['channels'] as $channel) {
+                if (empty($channel['prefix']) || (isset($channel['active']) && $channel['active'] !== 'Active')) {
+                    continue;
+                }
+                $banks[] = [
+                    'prefix' => (string) $channel['prefix'],
+                    'name'   => !empty($channel['name']) ? (string) $channel['name'] : (string) $channel['prefix'],
+                    'logo'   => !empty($channel['img_url']) ? esc_url_raw($channel['img_url']) : '',
+                ];
+            }
+
+            if ($banks) {
+                $groups[] = [
+                    'method'   => (string) $payment_method,
+                    'subtitle' => self::get_method_subtitle($payment_method),
+                    'banks'    => $banks,
+                ];
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Display payment form on checkout (classic checkout)
      */
     public function payment_fields() {
-        // Display description
         if ($this->description) {
             echo '<p>' . wp_kses_post($this->description) . '</p>';
         }
 
-        // Check if credentials are set, if not use sandbox for testing
-        $api_key = $this->api_key;
-        $secret_key = $this->secret_key;
-        
-        if (empty($api_key) || empty($secret_key)) {
-            echo '<div style="padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; margin: 10px 0;">';
-            echo '<p style="margin: 0; color: #856404;"><strong>' . esc_html__('Payment gateway is not fully configured.', 'herepay-for-woocommerce') . '</strong></p>';
-            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #856404;">' . esc_html__('Please contact the store administrator to configure Herepay payment settings.', 'herepay-for-woocommerce') . '</p>';
-            echo '</div>';
+        if (empty($this->api_key) || empty($this->secret_key)) {
+            echo '<div class="hp-notice hp-notice--warn"><strong>' . esc_html__('Payment gateway is not fully configured.', 'herepay-for-woocommerce') . '</strong>'
+                . esc_html__('Please contact the store administrator to configure Herepay payment settings.', 'herepay-for-woocommerce') . '</div>';
             return;
         }
 
-        // Get payment channels using the correct credentials
-        $channels = $this->getPaymentChannelsWithCredentials($api_key, $secret_key);
-        
-        if (!$channels || !isset($channels['data']) || empty($channels['data'])) {
-            echo '<div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin: 10px 0;">';
-            echo '<p style="margin: 0; color: #721c24;"><strong>' . esc_html__('Unable to load payment channels.', 'herepay-for-woocommerce') . '</strong></p>';
-            echo '<p style="margin: 5px 0 0 0; font-size: 12px; color: #721c24;">' . esc_html__('Please try again later or contact support if the problem persists.', 'herepay-for-woocommerce') . '</p>';
-            echo '</div>';
+        $groups = $this->get_bank_groups();
+
+        if (empty($groups)) {
+            echo '<div class="hp-notice hp-notice--error"><strong>' . esc_html__('Unable to load payment channels.', 'herepay-for-woocommerce') . '</strong>'
+                . esc_html__('Please try again later or contact support if the problem persists.', 'herepay-for-woocommerce') . '</div>';
             return;
         }
 
-        echo '<div id="herepay-payment-form" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background-color: #f9f9f9; margin-top: 10px;">';
-        echo '<label for="herepay_bank_prefix" style="display: block; margin-bottom: 5px; font-weight: bold;">' . esc_html__('Select Bank', 'herepay-for-woocommerce') . ' <span class="required" style="color: red;">*</span></label>';
-        echo '<select id="herepay_bank_prefix" name="herepay_bank_prefix" required style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">';
-        echo '<option value="">' . esc_html__('Select a bank...', 'herepay-for-woocommerce') . '</option>';
-        
-        // Parse the channels data structure properly
-        foreach ($channels['data'] as $method_group) {
-            if (isset($method_group['channels']) && is_array($method_group['channels'])) {
-                $payment_method = $method_group['payment_method'] ?? 'Online Banking';
-                
-                foreach ($method_group['channels'] as $channel) {
-                    if (isset($channel['prefix']) && isset($channel['name']) && $channel['active'] === 'Active') {
-                        $bank_prefix = $channel['prefix'];
-                        $bank_name = !empty($channel['name']) ? $channel['name'] : $bank_prefix;
-                        
-                        echo '<option value="' . esc_attr($bank_prefix) . '" data-method="' . esc_attr($payment_method) . '">';
-                        echo esc_html($bank_name) . ' (' . esc_html($payment_method) . ')';
-                        echo '</option>';
-                    }
-                }
+        $chevron = '<svg class="hp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+        $search  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
+        $check   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 12.5 3 3 7-7"/></svg>';
+        $logo    = HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/images/herepay-logo.png';
+
+        echo '<div id="herepay-payment-form" class="hp-picker">';
+
+        echo '<div class="hp-head"><span class="hp-head__title">' . esc_html__('Choose your bank', 'herepay-for-woocommerce') . '</span>'
+            . '<span class="hp-secured">' . esc_html__('Secured by', 'herepay-for-woocommerce')
+            . ' <img class="hp-secured__logo" src="' . esc_url($logo) . '" alt="Herepay" width="48" height="12"></span></div>';
+
+        echo '<div class="hp-groups" role="radiogroup" aria-label="' . esc_attr__('Payment method', 'herepay-for-woocommerce') . '">';
+
+        foreach ($groups as $i => $group) {
+            $open     = ($i === 0);
+            $group_id = 'hp-group-' . $i;
+            $count    = count($group['banks']);
+
+            echo '<div class="hp-group' . ($open ? ' is-open is-active' : '') . '" data-method="' . esc_attr($group['method']) . '">';
+
+            echo '<div class="hp-group__head" role="radio" tabindex="0" aria-checked="' . ($open ? 'true' : 'false') . '" aria-expanded="' . ($open ? 'true' : 'false') . '" aria-controls="' . esc_attr($group_id) . '">'
+                . '<span class="hp-radio" aria-hidden="true"></span>'
+                . '<span class="hp-group__text"><span class="hp-group__title">' . esc_html($group['method']) . '</span>'
+                . ($group['subtitle'] ? '<span class="hp-group__sub">' . esc_html($group['subtitle']) . '</span>' : '')
+                . '<span class="hp-group__chosen"></span>'
+                . '</span>'
+                . '<span class="hp-group__change">' . esc_html__('Change', 'herepay-for-woocommerce') . '</span>'
+                . $chevron . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup
+
+            echo '<div class="hp-group__body" id="' . esc_attr($group_id) . '">';
+
+            echo '<label class="hp-search">' . $search // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup
+                . '<input type="search" class="hp-search__input" autocomplete="off" '
+                . 'placeholder="' . esc_attr(sprintf(
+                    /* translators: %d: number of banks */
+                    _n('Search %d bank', 'Search %d banks', $count, 'herepay-for-woocommerce'),
+                    $count
+                )) . '" aria-label="' . esc_attr__('Search banks', 'herepay-for-woocommerce') . '"></label>';
+
+            echo '<div class="hp-tiles" role="radiogroup" aria-label="' . esc_attr($group['method']) . '">';
+            foreach ($group['banks'] as $bank) {
+                $initial = function_exists('mb_substr') ? mb_strtoupper(mb_substr($bank['name'], 0, 1)) : strtoupper(substr($bank['name'], 0, 1));
+                echo '<div class="hp-tile" role="radio" tabindex="0" aria-checked="false" '
+                    . 'data-prefix="' . esc_attr($bank['prefix']) . '" data-name="' . esc_attr($bank['name']) . '" data-logo="' . esc_url($bank['logo']) . '" title="' . esc_attr($bank['name']) . '">'
+                    . '<span class="hp-tile__logo' . ($bank['logo'] ? ' has-img' : '') . '" aria-hidden="true">' . esc_html($initial)
+                    . ($bank['logo'] ? '<img class="hp-tile__img" src="' . esc_url($bank['logo']) . '" alt="" loading="lazy">' : '')
+                    . '</span>'
+                    . '<span class="hp-tile__name">' . esc_html($bank['name']) . '</span>'
+                    . '<span class="hp-tile__check" aria-hidden="true">' . $check . '</span>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup
+                    . '</div>';
             }
+            echo '</div>';
+
+            echo '<div class="hp-empty" hidden>' . esc_html__('No bank matches your search.', 'herepay-for-woocommerce') . '</div>';
+            echo '</div></div>';
         }
-        
-        echo '</select>';
-        echo '<input type="hidden" id="herepay_payment_method" name="herepay_payment_method" value="" />';
-        
-        // Add nonce field for security
-        wp_nonce_field('herepay_checkout_nonce', 'herepay_checkout_nonce_field');
-        
+
         echo '</div>';
 
-        // Add inline script for payment method selection
-        $inline_script = "
-        jQuery(document).ready(function($) {
-            $('#herepay_bank_prefix').change(function() {
-                var selectedOption = $(this).find('option:selected');
-                var paymentMethod = selectedOption.data('method');
-                $('#herepay_payment_method').val(paymentMethod);
-                
-                // Add visual feedback
-                $('.herepay-selected-method').remove();
-                if (paymentMethod) {
-                    $(this).after('<div class=\"herepay-selected-method\" style=\"margin-top: 5px; font-size: 12px; color: #666;\">✓ Payment Method: ' + paymentMethod + '</div>');
-                }
-            });
-        });
-        ";
-        wp_add_inline_script('herepay-checkout', $inline_script);
+        echo '<div class="hp-error" hidden role="alert"></div>';
+
+        echo '<input type="hidden" id="herepay_bank_prefix" name="herepay_bank_prefix" value="" />';
+        echo '<input type="hidden" id="herepay_payment_method" name="herepay_payment_method" value="" />';
+        echo '<input type="hidden" id="herepay_bank_name" name="herepay_bank_name" value="" />';
+        wp_nonce_field('herepay_checkout_nonce', 'herepay_checkout_nonce_field');
+
+        echo '</div>';
     }
 
     /**
@@ -398,6 +518,10 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
         $order->update_meta_data('_herepay_payment_code', $payment_code);
         $order->update_meta_data('_herepay_bank_prefix', $bank_prefix);
         $order->update_meta_data('_herepay_payment_method', $payment_method);
+        $bank_name = $this->get_payment_post_data('herepay_bank_name');
+        if ($bank_name !== '') {
+            $order->update_meta_data('_herepay_bank_name', $bank_name);
+        }
         $order->save();
 
         // Update order status
@@ -428,7 +552,7 @@ class Herepay_WC_Payment_Gateway extends WC_Payment_Gateway {
 
     /**
      * Handle webhook/callback from Herepay
-     * Based on https://herepay.readme.io/reference/post_callback
+     * Based on https://docs.herepay.org (Callback)
      * Note: Webhooks from external services cannot use nonces - we verify using checksum instead
      */
     public function handle_callback() {

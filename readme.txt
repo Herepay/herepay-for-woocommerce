@@ -223,7 +223,7 @@ Initial release of Herepay Payment Gateway for WooCommerce. No upgrade required.
 For support and documentation:
 
 * **Plugin Documentation**: Available in the plugin folder
-* **Herepay API Documentation**: [https://herepay.readme.io](https://herepay.readme.io)
+* **Herepay API Documentation**: [https://docs.herepay.org](https://docs.herepay.org)
 * **Herepay Support**: [https://herepay.org/support](https://herepay.org/support)
 * **WordPress Support Forums**: [WordPress.org Plugin Support](https://wordpress.org/support/plugin/herepay-payment-gateway/)
 

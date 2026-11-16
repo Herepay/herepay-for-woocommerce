@@ -42,7 +42,10 @@ class Herepay_Admin {
         $test_mode = $gateway->environment === 'sandbox';
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Herepay Payment Gateway', 'herepay-for-woocommerce'); ?></h1>
+            <h1 style="display:flex;align-items:center;gap:14px;">
+                <img src="<?php echo esc_url(HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/images/herepay-logo.png'); ?>" alt="Herepay" style="height:30px;width:auto;display:block;">
+                <span><?php esc_html_e('Payment Gateway', 'herepay-for-woocommerce'); ?></span>
+            </h1>
             
             <div class="herepay-admin-container">
                 <div class="herepay-status-card">
@@ -94,7 +97,7 @@ class Herepay_Admin {
                 <div class="herepay-docs-card">
                     <h2><?php esc_html_e('Documentation & Support', 'herepay-for-woocommerce'); ?></h2>
                     <p><?php esc_html_e('For detailed integration guide and API documentation, visit:', 'herepay-for-woocommerce'); ?></p>
-                    <a href="https://herepay.readme.io" target="_blank" class="button button-primary">
+                    <a href="https://docs.herepay.org" target="_blank" class="button button-primary">
                         <?php esc_html_e('View Documentation', 'herepay-for-woocommerce'); ?>
                     </a>
                     

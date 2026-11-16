@@ -213,7 +213,7 @@ Logs will be saved to `/wp-content/debug.log`
 ## Support
 
 ### Documentation
-- [Herepay API Documentation](https://herepay.readme.io)
+- [Herepay API Documentation](https://docs.herepay.org)
 - [WooCommerce Documentation](https://docs.woocommerce.com)
 
 ### Getting Help

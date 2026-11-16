@@ -1,0 +1,591 @@
+/**
+ * Herepay bank picker (classic + block checkout)
+ *
+ * Every selector is namespaced with .hp-picker and key layout properties use
+ * !important on purpose: WooCommerce core (#payment ul.payment_methods li ...),
+ * Bootstrap 3/4/5 and Tailwind v1-v4 preflight all style input/img/button/label
+ * globally, often with ID selectors. This keeps the picker identical everywhere.
+ */
+
+.hp-picker {
+    --hp-brand: #174bd7;
+    --hp-brand-soft: #eef3ff;
+    --hp-ink: #0f172a;
+    --hp-subtle: #64748b;
+    --hp-line: #e6eaf2;
+    --hp-line-strong: #d5dbe7;
+    --hp-canvas: #f6f8fc;
+    --hp-danger: #b42318;
+
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 12px 0 0 !important;
+    padding: 0 !important;
+    color: var(--hp-ink) !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+.hp-picker *,
+.hp-picker *::before,
+.hp-picker *::after {
+    box-sizing: border-box !important;
+}
+
+/* Visually hidden, still read by screen readers (themes may lack .screen-reader-text) */
+.hp-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ---------- Header: "Choose your bank" + Secured by herepay ---------- */
+.hp-picker .hp-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+}
+
+.hp-picker .hp-head__title {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    color: var(--hp-ink) !important;
+}
+
+.hp-picker .hp-secured {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    color: var(--hp-subtle) !important;
+    white-space: nowrap !important;
+}
+
+.hp-picker img.hp-secured__logo {
+    display: inline-block !important;
+    width: auto !important;
+    height: 12px !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    vertical-align: middle !important;
+    float: none !important;
+}
+
+/* ---------- Accordion of payment methods ---------- */
+.hp-picker .hp-groups {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    border: 1px solid var(--hp-line) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04) !important;
+    overflow: hidden !important;
+}
+
+.hp-picker .hp-group {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+.hp-picker .hp-group + .hp-group {
+    border-top: 1px solid var(--hp-line) !important;
+}
+
+.hp-picker .hp-group__head {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 58px !important;
+    margin: 0 !important;
+    padding: 8px 14px !important;
+    background: #fff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: var(--hp-ink) !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.hp-picker .hp-group__head:focus-visible {
+    outline: 2px solid var(--hp-brand) !important;
+    outline-offset: -2px !important;
+}
+
+.hp-picker .hp-radio {
+    display: block !important;
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1.5px solid #c3cad8 !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    transition: border-width .2s ease, border-color .2s ease;
+}
+
+.hp-picker .hp-group.is-active .hp-radio {
+    border: 5px solid var(--hp-brand) !important;
+}
+
+/* Collapsed group with a chosen bank: show the bank instead of the subtitle */
+.hp-picker .hp-group__chosen {
+    display: none !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 3px !important;
+    min-width: 0 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    color: var(--hp-brand) !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) .hp-group__chosen {
+    display: flex !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) .hp-group__sub {
+    display: none !important;
+}
+
+.hp-picker .hp-group__chosen-name {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.hp-picker img.hp-group__chosen-logo {
+    display: block !important;
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    object-fit: contain !important;
+    float: none !important;
+}
+
+.hp-picker .hp-group__change {
+    display: none !important;
+    flex-shrink: 0 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    color: var(--hp-brand) !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) .hp-group__change {
+    display: block !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) .hp-chevron {
+    display: none !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) {
+    background: var(--hp-brand-soft) !important;
+}
+
+.hp-picker .hp-group.has-chosen:not(.is-open) .hp-group__head {
+    background: transparent !important;
+}
+
+.hp-picker .hp-group__text {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.hp-picker .hp-group__title {
+    display: block !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    color: var(--hp-ink) !important;
+}
+
+.hp-picker .hp-group__sub {
+    display: block !important;
+    margin-top: 1px !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 1.3 !important;
+    color: var(--hp-subtle) !important;
+}
+
+.hp-picker .hp-chevron {
+    display: block !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    color: var(--hp-subtle) !important;
+    transition: transform .3s ease;
+}
+
+.hp-picker .hp-group.is-open .hp-chevron {
+    transform: rotate(180deg);
+}
+
+.hp-picker .hp-group__body {
+    display: none !important;
+    margin: 0 !important;
+    padding: 12px 14px 14px !important;
+    background: var(--hp-canvas) !important;
+    border-top: 1px solid var(--hp-line) !important;
+}
+
+.hp-picker .hp-group.is-open .hp-group__body {
+    display: block !important;
+}
+
+/* ---------- Search ---------- */
+.hp-picker .hp-search {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    height: 44px !important;
+    margin: 0 0 10px !important;
+    padding: 0 12px !important;
+    background: #fff !important;
+    border: 1px solid var(--hp-line-strong) !important;
+    border-radius: 8px !important;
+}
+
+.hp-picker .hp-search:focus-within {
+    border-color: var(--hp-brand) !important;
+    box-shadow: 0 0 0 3px rgba(23, 75, 215, .12) !important;
+}
+
+.hp-picker .hp-search svg {
+    display: block !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    color: var(--hp-subtle) !important;
+}
+
+.hp-picker input.hp-search__input,
+.hp-picker input.hp-search__input:focus {
+    display: block !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: var(--hp-ink) !important;
+    font-family: inherit !important;
+    font-size: 15px !important;
+    line-height: normal !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+.hp-picker input.hp-search__input::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+.hp-picker input.hp-search__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+/* ---------- Bank tiles ---------- */
+.hp-picker .hp-tiles {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    max-height: 340px !important;
+    margin: 0 !important;
+    padding: 2px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    list-style: none !important;
+}
+
+.hp-picker .hp-tile {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 6px 12px !important;
+    background: #fff !important;
+    border: 1px solid var(--hp-line-strong) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    color: var(--hp-ink) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+}
+
+.hp-picker .hp-tile:hover {
+    border-color: rgba(23, 75, 215, .4) !important;
+}
+
+.hp-picker .hp-tile:active {
+    transform: scale(.98);
+}
+
+.hp-picker .hp-tile:focus-visible {
+    outline: 2px solid var(--hp-brand) !important;
+    outline-offset: 1px !important;
+}
+
+.hp-picker .hp-tile.is-selected {
+    background: var(--hp-brand-soft) !important;
+    border-color: var(--hp-brand) !important;
+    box-shadow: inset 0 0 0 1px var(--hp-brand) !important;
+}
+
+.hp-picker .hp-tile[hidden] {
+    display: none !important;
+}
+
+.hp-picker .hp-tile__logo {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    background: var(--hp-canvas) !important;
+    color: var(--hp-subtle) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    overflow: hidden !important;
+}
+
+.hp-picker .hp-tile__logo.has-img {
+    background: transparent !important;
+}
+
+.hp-picker img.hp-tile__img {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    object-fit: contain !important;
+    float: none !important;
+    vertical-align: middle !important;
+    background: #fff !important;
+}
+
+.hp-picker img.hp-tile__img.is-broken {
+    display: none !important;
+}
+
+.hp-picker .hp-tile__name {
+    display: -webkit-box !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word !important;
+}
+
+.hp-picker .hp-tile__check {
+    display: none !important;
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    background: var(--hp-brand) !important;
+    color: #fff !important;
+}
+
+.hp-picker .hp-tile__check svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.hp-picker .hp-tile.is-selected .hp-tile__check {
+    display: block !important;
+}
+
+.hp-picker .hp-empty {
+    display: block !important;
+    margin: 4px 0 0 !important;
+    padding: 14px !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    color: var(--hp-subtle) !important;
+}
+
+.hp-picker .hp-empty[hidden] {
+    display: none !important;
+}
+
+/* ---------- Selected summary + errors ---------- */
+.hp-picker .hp-summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 10px 0 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    color: var(--hp-subtle) !important;
+}
+
+.hp-picker .hp-summary strong {
+    font-weight: 600 !important;
+    color: var(--hp-ink) !important;
+}
+
+.hp-picker .hp-summary[hidden],
+.hp-picker .hp-error[hidden] {
+    display: none !important;
+}
+
+.hp-picker .hp-error {
+    display: block !important;
+    margin: 10px 0 0 !important;
+    padding: 10px 12px !important;
+    background: #fef3f2 !important;
+    border: 1px solid #fecdca !important;
+    border-radius: 8px !important;
+    color: var(--hp-danger) !important;
+    font-size: 13px !important;
+}
+
+.hp-picker.has-error .hp-groups {
+    border-color: #fda29b !important;
+}
+
+/* Notices shown instead of the picker (missing keys / API down) */
+.hp-notice {
+    margin: 10px 0 0 !important;
+    padding: 12px 14px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+}
+
+.hp-notice strong {
+    display: block !important;
+    margin-bottom: 2px !important;
+}
+
+.hp-notice--warn {
+    background: #fffaeb !important;
+    border: 1px solid #fedf89 !important;
+    color: #93370d !important;
+}
+
+.hp-notice--error {
+    background: #fef3f2 !important;
+    border: 1px solid #fecdca !important;
+    color: #b42318 !important;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+    .hp-picker .hp-group__head {
+        padding: 8px 12px !important;
+    }
+
+    .hp-picker .hp-group__body {
+        padding: 10px 10px 12px !important;
+    }
+
+    .hp-picker .hp-tile {
+        gap: 8px !important;
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+    }
+
+    .hp-picker .hp-tiles {
+        max-height: 300px !important;
+    }
+
+    /* 16px stops iOS Safari from zooming into the field */
+    .hp-picker input.hp-search__input,
+    .hp-picker input.hp-search__input:focus {
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 340px) {
+    .hp-picker .hp-tiles {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .hp-picker .hp-secured {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hp-picker .hp-radio,
+    .hp-picker .hp-chevron,
+    .hp-picker .hp-tile {
+        transition: none !important;
+    }
+}

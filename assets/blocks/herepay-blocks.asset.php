@@ -1,6 +1,6 @@
-<?php 
+<?php
 /**
- * Generated asset file for Herepay Blocks integration
+ * Asset file for the Herepay Blocks integration
  */
 return array(
     'dependencies' => array(
@@ -8,7 +8,6 @@ return array(
         'wp-element',
         'wp-i18n',
         'wp-html-entities',
-        'wp-components'
     ),
-    'version' => '1.0.0'
+    'version' => HEREPAY_FOR_WOOCOMMERCE_VERSION,
 );
