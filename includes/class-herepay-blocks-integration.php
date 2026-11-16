@@ -71,30 +71,36 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
             true
         );
 
-        // Register and enqueue the CSS for blocks
+        wp_register_style(
+            'herepay-bank-picker',
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/herepay-bank-picker.css',
+            [],
+            HEREPAY_FOR_WOOCOMMERCE_VERSION
+        );
         wp_register_style(
             'herepay-blocks-style',
-            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . '/assets/blocks/herepay-blocks.css',
-            [],
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/blocks/herepay-blocks.css',
+            ['herepay-bank-picker'],
             HEREPAY_FOR_WOOCOMMERCE_VERSION
         );
         wp_enqueue_style('herepay-blocks-style');
 
-        // Localize script with payment data
+        if (function_exists('wp_set_script_translations')) {
+            wp_set_script_translations('herepay-blocks-integration', 'herepay-for-woocommerce');
+        }
+
+        // Never pass API/secret keys to the browser: only what the picker needs.
+        $groups = $this->gateway->get_bank_groups();
         wp_localize_script(
             'herepay-blocks-integration',
             'herepayBlocksParams',
             [
-                'title' => $this->get_herepay_setting('title'),
+                'title'       => $this->get_herepay_setting('title'),
                 'description' => $this->get_herepay_setting('description'),
-                'supports' => array_filter($this->gateway->supports, [$this->gateway, 'supports']),
-                'logoUrl' => $this->gateway->icon,
-                'apiKey' => $this->get_herepay_setting('api_key'),
-                'secretKey' => $this->get_herepay_setting('secret_key'),
-                'environment' => $this->get_herepay_setting('environment'),
-                'paymentChannels' => $this->get_payment_channels(),
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('herepay_checkout_nonce')
+                'supports'    => array_values(array_filter($this->gateway->supports, [$this->gateway, 'supports'])),
+                'logoUrl'     => $this->gateway->icon,
+                'configured'  => !empty($this->get_herepay_setting('api_key')) && !empty($this->get_herepay_setting('secret_key')),
+                'bankGroups'  => is_array($groups) ? $groups : [],
             ]
         );
 
@@ -112,50 +118,7 @@ final class Herepay_Blocks_Integration extends AbstractPaymentMethodType {
             'description' => $this->get_herepay_setting('description'),
             'supports'    => array_filter($this->gateway->supports, [$this->gateway, 'supports']),
             'logo_url'    => $this->gateway->icon,
-            'payment_channels' => $this->get_payment_channels(),
-            'environment' => $this->get_herepay_setting('environment')
         ];
-    }
-
-    /**
-     * Get payment channels for the blocks checkout
-     *
-     * @return array
-     */
-    private function get_payment_channels() {
-        // Get credentials from gateway settings
-        $api_key = $this->get_herepay_setting('api_key');
-        $secret_key = $this->get_herepay_setting('secret_key');
-        
-        if (empty($api_key) || empty($secret_key)) {
-            return [];
-        }
-
-        $channels = $this->gateway->getPaymentChannelsWithCredentials($api_key, $secret_key);
-        
-        if (!$channels || !isset($channels['data']) || empty($channels['data'])) {
-            return [];
-        }
-
-        // Format channels for frontend use
-        $formatted_channels = [];
-        foreach ($channels['data'] as $method_group) {
-            if (isset($method_group['channels']) && is_array($method_group['channels'])) {
-                $payment_method = $method_group['payment_method'] ?? 'Online Banking';
-                
-                foreach ($method_group['channels'] as $channel) {
-                    if (isset($channel['prefix']) && isset($channel['name']) && $channel['active'] === 'Active') {
-                        $formatted_channels[] = [
-                            'prefix' => $channel['prefix'],
-                            'name' => $channel['name'],
-                            'method' => $payment_method
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $formatted_channels;
     }
 
     /**
