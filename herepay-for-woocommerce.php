@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Herepay Payment Gateway for WooCommerce
  * Description: Herepay Payment Gateway for WooCommerce - Accept secure online payments through Herepay.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Herepay
  * Author URI: https://herepay.org
  * Text Domain: herepay-for-woocommerce
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.3');
+define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.4');
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 

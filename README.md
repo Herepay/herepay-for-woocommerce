@@ -232,6 +232,14 @@ Logs will be saved to `/wp-content/debug.log`
 
 ## Changelog
 
+### Version 1.0.4
+- New bank picker with Online Banking / Corporate Banking tiles, bank logos and search.
+- Updated Herepay logo and redesigned redirect and error pages.
+- Security fix: API and secret keys are no longer sent to the browser in block checkout.
+- Fix: block checkout now sends the chosen bank.
+- Settings notes about the HTTPS live server requirement.
+- Documentation moved to https://docs.herepay.org.
+
 ### Version 1.0.3
 - Update URL Production.
 
