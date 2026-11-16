@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Herepay Payment Gateway for WooCommerce
  * Description: Herepay Payment Gateway for WooCommerce - Accept secure online payments through Herepay.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Herepay
  * Author URI: https://herepay.org
  * Text Domain: herepay-for-woocommerce
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.3');
+define('HEREPAY_FOR_WOOCOMMERCE_VERSION', '1.0.4');
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('HEREPAY_FOR_WOOCOMMERCE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
@@ -54,6 +54,32 @@ function herepay_payment_gateway_init()
     add_action('admin_post_herepay_process', 'herepay_handle_payment_processing');
 }
 add_action('plugins_loaded', 'herepay_payment_gateway_init');
+
+/**
+ * Classic checkout: show only the Herepay logo next to the radio button.
+ * The title is hidden visually (kept for screen readers) and only while WooCommerce
+ * renders checkout/payment-method.php, so the order's saved payment title,
+ * emails and admin screens keep the real text.
+ */
+function herepay_payment_method_template_flag($template_name, $template_path = '', $located = '', $args = [])
+{
+    if ($template_name !== 'checkout/payment-method.php') {
+        return;
+    }
+    $GLOBALS['herepay_rendering_gateway'] = (current_action() === 'woocommerce_before_template_part'
+        && isset($args['gateway']) && $args['gateway']->id === 'herepay_payment_gateway');
+}
+add_action('woocommerce_before_template_part', 'herepay_payment_method_template_flag', 10, 4);
+add_action('woocommerce_after_template_part', 'herepay_payment_method_template_flag', 10, 4);
+
+function herepay_logo_only_title($title, $gateway_id = '')
+{
+    if ($gateway_id === 'herepay_payment_gateway' && !empty($GLOBALS['herepay_rendering_gateway'])) {
+        return '<span class="hp-sr-only">' . esc_html($title) . '</span>';
+    }
+    return $title;
+}
+add_filter('woocommerce_gateway_title', 'herepay_logo_only_title', 10, 2);
 
 /**
  * Define allowed HTML tags for Herepay payment response
@@ -237,13 +263,112 @@ function herepay_handle_payment_processing()
     ]);
 
     if (is_wp_error($response)) {
-        wp_die('Error initiating payment: ' . esc_html($response->get_error_message()));
-    } else {
-        $body = wp_remote_retrieve_body($response);
-        echo wp_kses($body, herepay_get_allowed_html());
+        herepay_render_initiate_error($order, [$response->get_error_message()]);
     }
+
+    $body = wp_remote_retrieve_body($response);
+    $code = (int) wp_remote_retrieve_response_code($response);
+    $json = json_decode($body, true);
+
+    // Success is an HTML page that forwards the customer to the bank.
+    // Failure comes back as JSON, e.g. {"status":"Failed","error":"Validation failed.","errors":{...}}.
+    $failed = $code >= 400
+        || (is_array($json) && isset($json['status']) && strtolower((string) $json['status']) !== 'success');
+
+    if ($failed) {
+        $messages = [];
+        if (is_array($json)) {
+            if (!empty($json['errors']) && is_array($json['errors'])) {
+                foreach ($json['errors'] as $field_errors) {
+                    foreach ((array) $field_errors as $msg) {
+                        $messages[] = (string) $msg;
+                    }
+                }
+            }
+            if (!$messages && !empty($json['error'])) {
+                $messages[] = (string) $json['error'];
+            }
+            if (!$messages && !empty($json['message'])) {
+                $messages[] = (string) $json['message'];
+            }
+        }
+        if (!$messages) {
+            /* translators: %d: HTTP status code */
+            $messages[] = sprintf(__('Unexpected response from Herepay (HTTP %d).', 'herepay-for-woocommerce'), $code);
+        }
+        herepay_render_initiate_error($order, $messages);
+    }
+
+    echo wp_kses($body, herepay_get_allowed_html());
     exit;
-}/**
+}
+
+/**
+ * Herepay refused to start the payment: log it on the order and show the
+ * customer a clear page with a way back, instead of raw JSON.
+ *
+ * @param WC_Order|false|null $order
+ * @param string[]            $messages Messages from Herepay.
+ */
+function herepay_render_initiate_error($order, array $messages)
+{
+    $messages = array_values(array_unique(array_filter(array_map('trim', $messages))));
+    $joined = implode(' ', $messages);
+
+    if ($order) {
+        $order->add_order_note(sprintf(
+            /* translators: %s: error message from Herepay */
+            __('Herepay could not start the payment: %s', 'herepay-for-woocommerce'),
+            $joined
+        ));
+    }
+
+    $hint = '';
+    if (stripos($joined, 'https') !== false || stripos($joined, 'redirect') !== false) {
+        $hint = __('This store must run on HTTPS on a live server. Herepay does not accept http:// or local addresses (localhost, 127.0.0.1) for the redirect and callback URLs.', 'herepay-for-woocommerce');
+    }
+
+    $back_url = $order ? $order->get_checkout_payment_url() : wc_get_checkout_url();
+    $logo = HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/images/herepay-logo.png';
+    $css = HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/payment-form.css?ver=' . rawurlencode(HEREPAY_FOR_WOOCOMMERCE_VERSION);
+
+    status_header(200);
+    nocache_headers();
+    ?>
+    <!DOCTYPE html>
+    <html <?php language_attributes(); ?>>
+    <head>
+        <meta charset="<?php bloginfo('charset'); ?>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noindex">
+        <title><?php esc_html_e('Payment could not be started', 'herepay-for-woocommerce'); ?></title>
+        <link rel="stylesheet" href="<?php echo esc_url($css); ?>"><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- standalone page without wp_head() ?>
+    </head>
+    <body class="hp-redirect">
+        <div class="hp-redirect__card">
+            <img src="<?php echo esc_url($logo); ?>" alt="Herepay" class="hp-redirect__logo" width="120" height="30">
+            <div class="hp-redirect__icon hp-redirect__icon--error" aria-hidden="true">!</div>
+            <h2 class="hp-redirect__title"><?php esc_html_e('Payment could not be started', 'herepay-for-woocommerce'); ?></h2>
+            <p class="hp-redirect__text"><?php esc_html_e('No money has been taken. Please go back and try again, or choose another payment method.', 'herepay-for-woocommerce'); ?></p>
+
+            <div class="hp-redirect__alert" role="alert">
+                <?php foreach ($messages as $msg) : ?>
+                    <div><?php echo esc_html($msg); ?></div>
+                <?php endforeach; ?>
+                <?php if ($hint) : ?>
+                    <div class="hp-redirect__alert-hint"><?php echo esc_html($hint); ?></div>
+                <?php endif; ?>
+            </div>
+
+            <a class="hp-redirect__btn" href="<?php echo esc_url($back_url); ?>"><?php esc_html_e('Back to payment', 'herepay-for-woocommerce'); ?></a>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+/**
  * Declare HPOS and Blocks compatibility
  */
 function herepay_declare_compatibility()
@@ -292,7 +417,7 @@ add_action('woocommerce_blocks_loaded', 'herepay_register_payment_method_block')
 function herepay_plugin_action_links($links)
 {
     $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=herepay_payment_gateway') . '">' . __('Settings', 'herepay-for-woocommerce') . '</a>';
-    $docs_link = '<a href="https://herepay.readme.io" target="_blank">' . __('Documentation', 'herepay-for-woocommerce') . '</a>';
+    $docs_link = '<a href="https://docs.herepay.org" target="_blank">' . __('Documentation', 'herepay-for-woocommerce') . '</a>';
 
     array_unshift($links, $settings_link, $docs_link);
     return $links;
@@ -387,7 +512,13 @@ register_deactivation_hook(__FILE__, 'herepay_deactivate');
  */
 function herepay_enqueue_scripts()
 {
-    if (is_checkout()) {
+    // Block checkout loads its own script via Herepay_Blocks_Integration.
+    // The "pay for order" page always uses the classic form, even on block-checkout stores.
+    $is_block_checkout = !is_wc_endpoint_url('order-pay')
+        && function_exists('has_block')
+        && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
+
+    if (is_checkout() && !$is_block_checkout) {
         wp_enqueue_script('jquery');
         wp_enqueue_script(
             'herepay-checkout',
@@ -398,15 +529,26 @@ function herepay_enqueue_scripts()
         );
 
         wp_enqueue_style(
+            'herepay-bank-picker',
+            HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/herepay-bank-picker.css',
+            [],
+            HEREPAY_FOR_WOOCOMMERCE_VERSION
+        );
+
+        wp_enqueue_style(
             'herepay-checkout-style',
             HEREPAY_FOR_WOOCOMMERCE_PLUGIN_URL . 'assets/checkout.css',
-            [],
+            ['herepay-bank-picker'],
             HEREPAY_FOR_WOOCOMMERCE_VERSION
         );
 
         wp_localize_script('herepay-checkout', 'herepay_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
-            'loading_text' => __('Processing payment...', 'herepay-for-woocommerce')
+            'loading_text' => __('Processing payment...', 'herepay-for-woocommerce'),
+            'i18n' => [
+                'paying_with' => __('Paying with', 'herepay-for-woocommerce'),
+                'choose_bank' => __('Please choose your bank to continue.', 'herepay-for-woocommerce'),
+            ],
         ]);
     }
 }
