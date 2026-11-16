@@ -2,6 +2,26 @@
 
 All notable changes to the Herepay Payment Gateway for WooCommerce will be documented in this file.
 
+## [1.0.4] - 2026-11-16
+
+### Added
+- Bank picker at checkout: Online Banking and Corporate Banking in an accordion with searchable bank tiles and bank logos (`img_url` from the Herepay API).
+- Choosing a bank closes the list and shows the chosen bank in the header with a "Change" link.
+- The same picker in classic and block checkout; mobile friendly; namespaced styles so Bootstrap 3-5 and Tailwind v2-v4 themes do not change it.
+- Error page with a "Back to payment" button and an order note when Herepay rejects a payment.
+- Settings notes: Redirect and Callback URLs need a live HTTPS server, with a warning on local or non-HTTPS stores.
+
+### Changed
+- Only the Herepay logo is shown next to the payment method.
+- Herepay logos cropped and used in checkout, redirect page, gateway settings and admin page.
+- Redesigned redirect page, now showing the bank name.
+- Documentation links now point to https://docs.herepay.org.
+
+### Fixed
+- **Security**: block checkout no longer exposes the API key and secret key in the page.
+- Block checkout now sends the chosen bank to the server.
+- Redirect page CSS/JS no longer loads on the checkout page (it changed the page layout and caused a JavaScript error).
+
 ## [1.0.3] - 2026-04-22
 
 ### Added
